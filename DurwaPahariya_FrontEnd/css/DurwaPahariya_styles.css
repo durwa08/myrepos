@@ -1,0 +1,157 @@
+/*Resetting the margin and padding so that the browser inconsistincies can be avoided*/
+/* I reset margin and padding to avoid browser inconsistencies */
+/* Reset default spacing because different browsers apply their own margins and paddings,
+   which can break layout consistency */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* I chose a simple font and soft background color to keep the website clean and readable */
+body {
+    font-family: Arial, sans-serif;
+    background-color: #f4f6f8;
+    color: #333;
+    line-height: 1.6;
+}
+
+/* Centering header content so it looks balanced and visually appealing */
+header {
+    text-align: center;
+    background-color: #2c3e50;
+    color: white;
+    padding: 20px;
+}
+
+/* Making the profile image circular gives it a professional portfolio look */
+header img {
+    border-radius: 50%;
+    margin-top: 10px;
+}
+
+/* Used flexbox to arrange navigation items horizontally with equal spacing */
+nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    list-style: none;
+    background-color: #34495e;
+    padding: 15px;
+}
+
+/* Removing underline and styling links for a cleaner navigation bar */
+nav ul li a {
+    text-decoration: none;
+    color: white;
+    padding: 8px 15px;
+}
+
+/* Adding hover effect to improve user interaction and feedback */
+nav ul li a:hover {
+    background-color: #3498db;
+    border-radius: 5px;
+}
+
+/* Added margin and padding to create space between sections,
+   making content easier to read and visually separated */
+section {
+    margin: 20px;
+    padding: 20px;
+    background: white;
+    border-radius: 10px;
+
+    /* Light shadow to give a card-like appearance */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Increased spacing between skills so they don’t look cramped */
+#skills ul li {
+    line-height: 2;
+    font-weight: 500;
+}
+
+/* Table takes full width so data is properly aligned */
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+/* Borders help separate rows and columns clearly */
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+/* Highlighted table header to distinguish it from data rows */
+th {
+    background-color: #3498db;
+    color: white;
+    text-align: center;
+}
+
+/* Added padding so content inside cells has breathing space */
+td, th {
+    padding: 10px;
+}
+
+/* Alternate row coloring improves readability when scanning rows */
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Display block ensures each label appears above its input field */
+form label {
+    display: block;
+    margin-top: 10px;
+}
+
+/* Keeping input fields uniform for a clean and consistent form design */
+form input,
+form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* Styled button to match overall theme and make it noticeable */
+button {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Slight color change on hover gives feedback to user interaction */
+button:hover {
+    background-color: #2980b9;
+}
+
+/* Footer kept simple and centered to maintain consistency with header */
+footer {
+    text-align: center;
+    background-color: #2c3e50;
+    color: white;
+    padding: 10px;
+    font-size: 14px;
+}
+
+/* Media query ensures the layout works properly on smaller screens like mobile devices */
+@media (max-width: 768px) {
+
+    /* Stack navigation vertically instead of horizontally on small screens */
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Reduce spacing so content fits better on small screens */
+    section {
+        margin: 10px;
+        padding: 15px;
+    }
+}
