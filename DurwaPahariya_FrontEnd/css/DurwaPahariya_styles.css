@@ -26,3 +26,12 @@ header img {
     border-radius: 50%;
     margin-top: 10px;
 }
+/* Using Flexbox to align menu items horizontal and to maintain equal spacing */
+nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    list-style: none;
+    background-color: #34495e;
+    padding: 15px;
+}
