@@ -12,3 +12,17 @@ body {
     color: #333;
     line-height: 1.6;
 } 
+
+/*Putting everything in center so that header looks balanced*/
+header {
+    text-align: center;
+    background-color: #2c3e50;
+    color: white;
+    padding: 22px;
+}
+
+/* Giving image circular shape so that it can appear like profile picture */
+header img {
+    border-radius: 50%;
+    margin-top: 10px;
+}
