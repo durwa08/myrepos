@@ -79,3 +79,41 @@ td, th {
 tr:nth-child(even) {
     background-color: #f2f2f2;
 }
+
+/* Form Styling
+/* Keeping labels above inputs makes the form easier to navigate*/
+form label {
+    display: block;
+    margin-top: 10px;
+}
+
+/* I used full width inputs so that they can align properly with each other
+   instead of different sized fields which look messy */
+form input,
+form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+
+    /* Border is kept simple */
+    border: 1px solid #ccc;
+}
+
+/* Button is styled separately to make it clearly visible as an action element */
+button {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+
+    /* Pointer cursor indicates it's clickable */
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Slight hover effect gives feedback without overdoing animations */
+button:hover {
+    background-color: #2980b9;
+}
