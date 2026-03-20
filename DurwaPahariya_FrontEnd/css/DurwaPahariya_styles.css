@@ -5,10 +5,151 @@
     box-sizing: border-box;
 }
 
-/* I Choose a simple font and soft background to improve readability */
+/* I Chose a simple font and soft background to improve readability */
 body {
+    border: 3px solid #6c5ce7;
     font-family: Arial, sans-serif;
     background-color: #f4f6f8;
     color: #333;
     line-height: 1.6;
+} 
+/*Styling the Header*/
+/*Putting everything in center so that header looks balanced*/
+header {
+    text-align: center;
+    background-color: #2d3436;
+    color: white;
+    padding: 22px;
+}
+
+/* Giving image circular shape so that it can appear like profile picture */
+header img {
+    border-radius: 50%;
+    margin-top: 10px;
+}
+/* Navigation Style
+ Using Flexbox to align menu items horizontal and to maintain equal spacing */
+nav ul {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    list-style: none;
+    background-color: #2d3436;
+    padding: 15px;
+}
+/*  Removing underline and styled links */
+nav ul li a {
+    text-decoration: none;
+    color: white;
+    padding: 8px 15px;
+}
+
+/* Adding hover effect to make navigation interactive */
+nav ul li a:hover {
+    background-color: #6c5ce7;
+    border-radius: 5px;
+}
+
+/*Styling Table
+I used full width so the table aligns properly with the section layout 
+   instead of looking in the center
+*/
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+/* I preferred borders here instead of spacing-based separation
+   because it makes the data structure clearer and easier to read */
+table, th, td {
+    border: 1px solid #ddd;
+}
+/* Highlighting header with color so it stands out from normal rows
+     */
+th {
+    background-color: #6c5ce7;
+    color: white;
+    text-align: center;
+}
+/* Padding is added to avoid inconsistent text inside cells,
+   margin wouldn’t work here because it doesn’t apply inside table cells */
+td, th {
+    padding: 10px;
+}
+/* Alternate row colors help in scanning rows quickly,
+   especially when there is more data */
+tr:nth-child(even) {
+    background-color: #f2f2f2;
+}
+
+/* Form Styling
+/* Keeping labels above inputs makes the form easier to navigate*/
+form label {
+    display: block;
+    margin-top: 10px;
+}
+
+/* I used full width inputs so that they can align properly with each other
+   instead of different sized fields which look messy */
+form input,
+form textarea {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 5px;
+
+    /* Border is kept simple */
+    border: 1px solid #ccc;
+}
+
+/* Button is styled separately to make it clearly visible as an action element */
+button {
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #6c5ce7;
+    color: white;
+    border: none;
+
+    /* Pointer cursor indicates it's clickable */
+    cursor: pointer;
+    border-radius: 5px;
+}
+
+/* Slight hover effect gives feedback without overdoing animations */
+button:hover {
+    background-color: #2980b9;
+}
+/*
+Styling Footer Section
+/* I kept footer simple and centered so it doesn’t distract from main content
+   rather than adding too many elements which are useless */
+footer {
+    text-align: center;
+    background-color: #2d3436;
+    color: white;
+    letter-spacing: 1px;
+    /* Again padding is added */
+    padding: 10px;
+
+    /* Added smaller font to differentiate it from main sections */
+    font-size: 14px;
+}
+
+/*Let's now work a bit on 
+   Responsive Design
+   
+ I used media query to adjust layout for smaller screens
+   instead of creating a separate mobile design */
+@media (max-width: 768px) {
+
+    /* Switching to column layout so that it prevents content from shrinking too much */
+    nav ul {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    /* Reduced spacing */
+    section {
+        margin: 10px;
+        padding: 15px;
+    }
 }
