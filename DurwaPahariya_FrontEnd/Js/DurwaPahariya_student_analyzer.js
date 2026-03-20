@@ -68,3 +68,26 @@ function subjectHighestScore(students) {
   });
 }
 subjectHighestScore(students);
+
+//Subject Average
+
+function subjectAverageMarks(students) {
+
+    let subjects = students[0].marks.map(m => m.subject);
+
+    subjects.forEach(subject => {
+
+        let total = 0;
+
+        students.forEach(student => {
+            let sub = student.marks.find(m => m.subject === subject);
+            total += sub.score;
+        });
+
+        let avg = total / students.length;
+
+        console.log(`Average ${subject} Score: ${avg}`);
+    });
+}
+
+subjectAverageMarks(students);
