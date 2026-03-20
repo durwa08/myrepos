@@ -34,8 +34,8 @@ function calculateTotalMarks(student) {
   }
   return total;
 }
-//console.log("Total marks scored by Lalit:", calculateTotalMarks(students[0]));
-//console.log("Total marks scored by Rahul:", calculateTotalMarks(students[1]));
+console.log("Total marks scored by Lalit:", calculateTotalMarks(students[0]));
+console.log("Total marks scored by Rahul:", calculateTotalMarks(students[1]));
 
 //2)Calculation: AVERAGE MARKS
 
@@ -44,8 +44,8 @@ function calculateAverageMarks(student){
     
     return total/student.marks.length;
 }
-//console.log("Avg marks scored by Lalit:", calculateAverageMarks(students[0]));
-//console.log("Avg marks scored by Rahul:", calculateAverageMarks(students[1]));
+console.log("Avg marks scored by Lalit:", calculateAverageMarks(students[0]));
+console.log("Avg marks scored by Rahul:", calculateAverageMarks(students[1]));
 
 // Subject-wise Highest Marks 
 function subjectHighestScore(students) {
@@ -64,7 +64,7 @@ function subjectHighestScore(students) {
       { topper: "", highest: 0 }
     );
 
-   // console.log(`Highest in ${subject}: ${topper} (${highest})`);
+   console.log(`Highest in ${subject}: ${topper} (${highest})`);
   });
 }
 subjectHighestScore(students);
@@ -86,7 +86,7 @@ function subjectAverageMarks(students) {
 
         let avg = total / students.length;
 
-        //console.log(`Average ${subject} Score: ${avg}`);
+        console.log(`Average ${subject} Score: ${avg}`);
     });
 }
 
@@ -107,7 +107,7 @@ function findTopper(students) {
         }
     });
 
-    //console.log(`Class Topper: ${topper} with ${maxMarks} marks`);
+    console.log(`Class Topper: ${topper} with ${maxMarks} marks`);
 }
 
 
@@ -126,3 +126,22 @@ function calculateGrade(student) {
 
 console.log("Lalit Grade :", calculateGrade(students[0]));
 console.log("Rahul Grade :", calculateGrade(students[1]));
+
+//Fail Condition
+function checkFailCondition(student) {
+
+    for (let sub of student.marks) {
+        if (sub.score <= 40) {
+            return `Fail (Failed in ${sub.subject})`;
+        }
+    }
+
+    if (student.attendance < 75) {
+        return "Fail (Low Attendance)";
+    }
+
+    return null;
+}
+
+console.log("Lalit status :", checkFailCondition(students[0]))
+console.log("Rahul status :", checkFailCondition(students[1]))
