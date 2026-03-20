@@ -47,24 +47,24 @@ function calculateAverageMarks(student){
 //console.log("Avg marks scored by Lalit:", calculateAverageMarks(students[0]));
 //console.log("Avg marks scored by Rahul:", calculateAverageMarks(students[1]));
 
+// Subject-wise Highest Marks 
+function subjectHighestScore(students) {
+  const subjects = students[0].marks.map(m => m.subject);
 
+  subjects.forEach(subject => {
+    const { topper, highest } = students.reduce(
+      (acc, student) => {
+        const sub = student.marks.find(m => m.subject === subject);
+        if (sub.score > acc.highest) {
+          acc.highest = sub.score;
+          acc.topper = student.name;
+        }
+        return acc;
+      },
+      { topper: "", highest: 0 }
+    );
 
-//3)Calculating : Grades Logic
-function Grade(student) {
-
-  let avg =calculateAverageMarks(student);
-  if (avg >= 85) {
-    return "A";
-  } else if (avg >= 70) {
-    return "B";
-  } else if (avg >= 50) {
-    return "C";
-  } else {
-    return "Fail";
-  }
+   // console.log(`Highest in ${subject}: ${topper} (${highest})`);
+  });
 }
-//console.log("Lalit Grade:", Grade(students[0]));
-//console.log("Rahul Grade:", Grade(students[1]));
-
-
-//4)calculating:SUBJECT-WISE HIGHEST Marks
+subjectHighestScore(students);
