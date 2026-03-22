@@ -73,13 +73,18 @@
 Basic structure with header and addded heading to the html page
 ![Initial](screenshots_mini_app/heading.png)
  
-### Shows Plain HTML
-Shows Plain HTML .
-![HTML](screenshots_mini_app/ALL HTML_MINIAPP.png)
 
 ### Controls Section
 Provides search, filtering, and sorting options for managing products.
 ![Controls](screenshots_mini_app/Controls-SearchSortFilter.png)
+
+### Shows Plain HTML
+Shows Plain HTML .
+![HTML](screenshots_mini_app/ALL HTML_MINIAPP.png)
+
+### Started Adding Css
+Style Added to the Heading.
+![Heading Style](screenshots_mini_app/StyleHeading.png)
 
 ### Analytics
 Displays total products, total value, and out-of-stock count.
@@ -111,13 +116,17 @@ Sorts products by price and name in different orders.
 ![Sorting](screenshots_mini_app/sortedpricewise.png)
 
 
-### Sorting
+### Sorting2
 Sorts products by Category here category is electronics.
 ![Sorting](screenshots_mini_app/ALL ELECTRONICS.png)
 
 ### Shows final page after html css js
 Shows final page that is responsive.
 ![Product Inventory](screenshots_mini_app/ALL CATEGORY.png)
+
+###Analytics.png
+It will shows analytics of all after the products are added.
+![Analytics](screenshots_mini_app/Analytics.png)
 
 
 ## Testing Checklist
