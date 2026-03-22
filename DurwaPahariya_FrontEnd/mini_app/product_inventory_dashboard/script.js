@@ -15,3 +15,12 @@ let products = [
     
 
 ];
+
+// Trying to shows loading first
+function fetchProducts() {
+    return new Promise((resolve) => {
+        setTimeout(() => {
+            resolve(products);
+        }, 1500);
+    });
+}
