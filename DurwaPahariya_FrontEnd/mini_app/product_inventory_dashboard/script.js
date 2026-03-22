@@ -5,13 +5,13 @@ let products = [
     { id: 3, name: "Charger", price: 800, stock: 10, category: "electronics" },
     { id: 4, name: "Co-ord sets", price: 1800, stock: 2, category: "clothing" },
     { id: 5, name: "Tops and Shirts", price: 2000, stock: 2, category: "clothing" },
-    { id: 4, name: "Jeans", price: 2500, stock: 2, category: "clothing" },
+    { id: 6, name: "Jeans", price: 2500, stock: 2, category: "clothing" },
     { id: 7, name: "Story Books", price: 500, stock: 1, category: "books" },
     { id: 8, name: "Subject Books", price: 700, stock: 0, category: "books" },
     { id: 9, name: "Watch", price: 3000, stock: 4, category: "accessories" },
     { id: 10, name: "Bag", price: 1500, stock: 6, category: "accessories" },
     { id: 11, name: "Bracelets", price: 300, stock: 4, category: "accessories" },
-    { id: 9, name: "Shoes", price: 3000, stock: 9, category: "accessories" }
+    { id: 12, name: "Shoes", price: 3000, stock: 9, category: "accessories" }
     
 
 ];
@@ -26,9 +26,12 @@ function gettingProducts() {
 }
 
 function displayProducts(data) {
+    let loading = document.getElementById("loading");
 
-    let container = document.getElementById("productContainer");
-    container.innerHTML = "";
+     let container = document.getElementById("productContainer");
+     container.innerHTML = "";
+
+    
 
     // If nothing matches filters, show message instead of blank screen like no poduct found
     if (data.length === 0) {
@@ -55,7 +58,7 @@ function displayProducts(data) {
         container.appendChild(div);
     });
 
-    updateAnalytics();
+    updateAnalytics(data);
 }
 
 // I combined all filtering logic in one place instead of scattering it
@@ -82,13 +85,13 @@ function handleFilters() {
 // These values update every time product list changes
 function updateAnalytics() {
 
-    document.getElementById("totalProducts").innerText = products.length;
+    document.getElementById("total").innerText = products.length;
 
     let totalValue = products.reduce((sum, p) => sum + p.price * p.stock, 0);
-    document.getElementById("totalValue").innerText = totalValue;
+    document.getElementById("value").innerText = totalValue;
 
     let out = products.filter(p => p.stock === 0).length;
-    document.getElementById("outOfStock").innerText = out;
+    document.getElementById("out").innerText = out;
 }
 
 function deleteProduct(id) {
@@ -101,7 +104,7 @@ function deleteProduct(id) {
     handleFilters();
 }
 
-document.getElementById("productForm").addEventListener("submit", function(e) {
+document.getElementById("form").addEventListener("submit", function(e) {
 
     e.preventDefault();
 
@@ -128,24 +131,23 @@ document.getElementById("productForm").addEventListener("submit", function(e) {
 
     localStorage.setItem("products", JSON.stringify(products));
 
-    applyFilters();
+    handleFilters();
 
     this.reset(); // clearing form after submission
 });
 
 //Adding EvenListeners -they are used to detect user actions and run some codes when the action is triggered
-document.getElementById("search").addEventListener("input", applyFilters);
-document.getElementById("categoryFilter").addEventListener("change", applyFilters);
-document.getElementById("sort").addEventListener("change", applyFilters);
+document.getElementById("search").addEventListener("input", handleFilters);
+document.getElementById("categoryFilter").addEventListener("change", handleFilters);
+document.getElementById("sort").addEventListener("change", handleFilters);
 
 // Showing loading first, then displaying data
 document.addEventListener("DOMContentLoaded", async () => {
 
     let loading = document.getElementById("loading");
-
-    let data = await gettingProductsProducts();
-
+    let data = await gettingProducts();
+    displayProducts(data);
     loading.style.display = "none";
 
-    displayProductsProducts(data);
+    
 });
