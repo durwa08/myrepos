@@ -124,7 +124,7 @@ Sorts products by Category here category is electronics.
 Shows final page that is responsive.
 ![Product Inventory](screenshots_mini_app/ALL CATEGORY.png)
 
-###Analytics.png
+### Analytics.png
 It will shows analytics of all after the products are added.
 ![Analytics](screenshots_mini_app/Analytics.png)
 
