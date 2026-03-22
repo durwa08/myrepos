@@ -1,4 +1,3 @@
-//Adding Products Data
 let products = [
     { id: 1, name: "Laptop", price: 55000, stock: 5, category: "electronics" },
     { id: 2, name: "Phone", price: 20000, stock: 3, category: "electronics" },
