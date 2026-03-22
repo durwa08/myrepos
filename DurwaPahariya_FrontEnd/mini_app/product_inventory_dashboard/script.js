@@ -24,3 +24,36 @@ function fetchProducts() {
         }, 1500);
     });
 }
+
+function renderProducts(data) {
+
+    let container = document.getElementById("productContainer");
+    container.innerHTML = "";
+
+    // If nothing matches filters, show message instead of blank screen like no poduct found
+    if (data.length === 0) {
+        container.innerHTML = "<p>No products found 😢</p>";
+        return;
+    }
+
+    data.forEach(p => {
+
+        // Simple stock color logic so that user can quickly identify
+        let color = p.stock === 0 ? "red" : p.stock < 5 ? "orange" : "green";
+
+        let div = document.createElement("div");
+        div.className = "card";
+
+        div.innerHTML = `
+            <h3>${p.name}</h3>
+            <p>${p.category}</p>
+            <p>₹${p.price}</p>
+            <p style="color:${color}">Stock: ${p.stock}</p>
+            <button onclick="deleteProduct(${p.id})">Delete</button>
+        `;
+
+        container.appendChild(div);
+    });
+
+    updateAnalytics();
+}
