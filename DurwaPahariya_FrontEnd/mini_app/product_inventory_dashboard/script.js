@@ -17,7 +17,7 @@ let products = [
 ];
 
 // Trying to shows loading first
-function fetchProducts() {
+function gettingProducts() {
     return new Promise((resolve) => {
         setTimeout(() => {
             resolve(products);
@@ -25,7 +25,7 @@ function fetchProducts() {
     });
 }
 
-function renderProducts(data) {
+function displayProducts(data) {
 
     let container = document.getElementById("productContainer");
     container.innerHTML = "";
@@ -57,3 +57,37 @@ function renderProducts(data) {
 
     updateAnalytics();
 }
+
+// I combined all filtering logic in one place instead of scattering it
+function handleFilters() {
+
+    let searchVal= document.getElementById("search").value.toLowerCase();
+    let category =document.getElementById("categoryFilter").value;
+    let sort = document.getElementById("sort").value;
+
+    let filtered= products.filter(p => {
+        let matchSearch = p.name.toLowerCase().includes(searchVal);
+        let matchCategory = category === "all" || p.category === category;
+        return matchSearch && matchCategory;
+    });
+
+    // Sorting logic
+    if (sort === "low") filtered.sort((a,b)=>a.price-b.price);
+    if (sort === "high") filtered.sort((a,b)=>b.price-a.price);
+    if (sort === "az") filtered.sort((a,b)=>a.name.localeCompare(b.name));
+    if (sort === "za") filtered.sort((a,b)=>b.name.localeCompare(a.name));
+
+    displayProducts(filtered);
+}
+// These values update every time product list changes
+function updateAnalytics() {
+
+    document.getElementById("totalProducts").innerText = products.length;
+
+    let totalValue = products.reduce((sum, p) => sum + p.price * p.stock, 0);
+    document.getElementById("totalValue").innerText = totalValue;
+
+    let out = products.filter(p => p.stock === 0).length;
+    document.getElementById("outOfStock").innerText = out;
+}
+
