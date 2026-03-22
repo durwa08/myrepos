@@ -111,11 +111,13 @@ Sorts products by price and name in different orders.
 ![Sorting](screenshots_mini_app/sortedpricewise.png)
 
 
+### Sorting
+Sorts products by Category here category is electronics.
+![Sorting](screenshots_mini_app/ALL ELECTRONICS.png)
 
-### Shows All categories
-Shows different categories from electronics to clothing to accessories.
-![Categories](screenshots_mini_app/ALL CATEGORY.png)
-
+### Shows final page after html css js
+Shows final page that is responsive.
+![Product Inventory](screenshots_mini_app/ALL CATEGORY.png)
 
 
 ## Testing Checklist
@@ -140,4 +142,4 @@ Shows different categories from electronics to clothing to accessories.
 - ✔ All required features implemented
 - ✔ Fully tested and working
 
-The application is fully responsive and implements html css and js features.
+The application is fully responsive and a very great for learning.
