@@ -61,6 +61,17 @@ class CategoryService:
         ]
         return result
 
+    async def get_category_by_id(self, category_id: str) -> CategoryResponse:
+        """
+        Retrieve a category by its identifier.
+        """
+        category = await get_category_by_id(category_id)
+        if category is None:
+            raise CategoryNotFoundException()
+
+        result = CategoryResponse(**serialize_category(category))
+        return result
+
     async def update_category(
         self,
         category_id: str,

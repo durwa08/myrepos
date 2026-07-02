@@ -1,3 +1,4 @@
+from app.constants import STUDENT_ROLE
 from app.repositories.user_repository import (
     get_user_by_email,
     create_user,
@@ -32,8 +33,9 @@ class AuthService:
         """
         Register a new user after validating that the email is unique.
 
-        The password is hashed before storing, and only safe user fields
-        are returned.
+        The password is hashed before storing. Every user registered
+        through this endpoint is created with the student role — admin
+        accounts are created separately via a standalone seed script.
         """
         existing_user = await get_user_by_email(request.email)
         if existing_user is not None:
@@ -45,7 +47,7 @@ class AuthService:
             username=request.username,
             email=request.email,
             hashed_password=hashed,
-            role=request.role,
+            role=STUDENT_ROLE,
         )
         created_user = await create_user(new_user)
 

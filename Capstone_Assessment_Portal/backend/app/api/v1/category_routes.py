@@ -47,6 +47,20 @@ async def list_categories(current_user: dict = Depends(get_current_user)):
     return result
 
 
+@router.get("/{category_id}", response_model=CategoryResponse)
+async def get_category(
+    category_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Retrieve a category by its identifier.
+
+    Accessible to any authenticated user.
+    """
+    result = await category_service.get_category_by_id(category_id)
+    return result
+
+
 @router.put("/{category_id}", response_model=CategoryResponse)
 async def update_category(
     category_id: str,
