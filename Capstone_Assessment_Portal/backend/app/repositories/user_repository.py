@@ -2,8 +2,7 @@ from app.config.database import get_database
 from app.models.user_model import UserModel
 from bson import ObjectId
 
-# only this file talks to the users collection directly, everything else
-# goes through these functions
+
 database = get_database()
 user_collection = database["users"]
 
