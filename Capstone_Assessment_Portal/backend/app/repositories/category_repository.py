@@ -42,7 +42,7 @@ async def create_category(category: CategoryModel) -> dict:
     """
     Create a new category and return the saved document.
     """
-    category_dict = category.model_dump(by_alias=True, exclude={"id"})
+    category_dict = category.model_dump()
     result = await category_collection.insert_one(category_dict)
 
     created_category = await category_collection.find_one(
