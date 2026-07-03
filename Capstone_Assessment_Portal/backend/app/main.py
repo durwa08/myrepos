@@ -9,6 +9,8 @@ from app.exceptions.custom_exceptions import (
     InvalidCredentialsException,
     InvalidRefreshTokenException,
     UserNotFoundException,
+    CategoryNotFoundException,
+    CategoryAlreadyExistsException,
 )
 
 app = FastAPI(
@@ -55,6 +57,22 @@ async def user_not_found_handler(request: Request, exc: UserNotFoundException):
     return JSONResponse(
         status_code=401,
         content={"detail": "User no longer exists."},
+    )
+
+
+@app.exception_handler(CategoryNotFoundException)
+async def category_not_found_handler(request: Request, exc: CategoryNotFoundException):
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Category not found."},
+    )
+
+
+@app.exception_handler(CategoryAlreadyExistsException)
+async def category_already_exists_handler(request: Request, exc: CategoryAlreadyExistsException):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "A category with this name already exists."},
     )
 
 
