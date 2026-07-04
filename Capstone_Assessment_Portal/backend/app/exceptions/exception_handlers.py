@@ -5,6 +5,9 @@ Maps domain-level exceptions raised in the service layer to proper
 HTTP responses, keeping this logic out of main.py.
 """
 
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
+
 from app.exceptions.custom_exceptions import (
     CategoryAlreadyExistsException,
     CategoryNotFoundException,
@@ -12,6 +15,8 @@ from app.exceptions.custom_exceptions import (
     InvalidRefreshTokenException,
     QuestionAlreadyExistsException,
     QuestionNotFoundException,
+    QuizAlreadyExistsException,
+    QuizNotFoundException,
     UserAlreadyExistsException,
     UserNotFoundException,
 )
@@ -65,6 +70,22 @@ async def category_already_exists_handler(request: Request, exc: CategoryAlready
     )
 
 
+async def quiz_not_found_handler(request: Request, exc: QuizNotFoundException):
+    """Handle lookups for a quiz that does not exist."""
+    return JSONResponse(
+        status_code=404,
+        content={"detail": "Quiz not found."},
+    )
+
+
+async def quiz_already_exists_handler(request: Request, exc: QuizAlreadyExistsException):
+    """Handle attempts to create a duplicate quiz within a category."""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": "A quiz with this title already exists in the selected category."},
+    )
+
+
 async def question_not_found_handler(request: Request, exc: QuestionNotFoundException):
     """Handle lookups for a question that does not exist."""
     return JSONResponse(
@@ -80,6 +101,7 @@ async def question_already_exists_handler(request: Request, exc: QuestionAlready
         content={"detail": "A question with this text already exists in the selected quiz."},
     )
 
+
 def register_exception_handlers(app: FastAPI) -> None:
     """
     Register all custom exception handlers on the given FastAPI app.
@@ -93,5 +115,7 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(UserNotFoundException, user_not_found_handler)
     app.add_exception_handler(CategoryNotFoundException, category_not_found_handler)
     app.add_exception_handler(CategoryAlreadyExistsException, category_already_exists_handler)
+    app.add_exception_handler(QuizNotFoundException, quiz_not_found_handler)
+    app.add_exception_handler(QuizAlreadyExistsException, quiz_already_exists_handler)
     app.add_exception_handler(QuestionNotFoundException, question_not_found_handler)
     app.add_exception_handler(QuestionAlreadyExistsException, question_already_exists_handler)
