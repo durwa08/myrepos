@@ -2,10 +2,10 @@ from fastapi import HTTPException, status
 
 
 class InvalidTokenException(HTTPException):
-    def __init__(self):
+    def __init__(self, detail: str = "Invalid or expired token."):
         super().__init__(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token.",
+            detail=detail,
             headers={"WWW-Authenticate": "Bearer"},
         )
 
@@ -38,3 +38,12 @@ class UserNotFoundException(Exception):
 
 class InvalidTokenException(Exception):
     """Raised when the JWT token is invalid or expired."""
+
+class CategoryAlreadyExistsException(Exception):
+    """Raised when a category with the given name already exists."""
+    pass
+
+
+class CategoryNotFoundException(Exception):
+    """Raised when the requested category does not exist."""
+    pass    
