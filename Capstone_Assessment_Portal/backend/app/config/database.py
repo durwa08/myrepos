@@ -3,6 +3,7 @@ MongoDB connection setup and index initialization.
 """
 
 from motor.motor_asyncio import AsyncIOMotorClient
+
 from app.config.settings import settings
 
 client = AsyncIOMotorClient(settings.mongo_uri)
@@ -19,15 +20,32 @@ def get_database():
     return database
 
 
-async def init_indexes():
+async def ensure_indexes():
     """
-    Create required MongoDB indexes at application startup.
+    Create required MongoDB indexes during application startup.
 
-    Ensures a quiz title is unique within a given category at the
-    database level, guarding against race conditions that a
+    Ensures quiz titles are unique within a category, category names
+    are globally unique, and question text is unique within a quiz —
+    at the database level, guarding against race conditions that a
     pre-check in the service layer alone cannot fully prevent.
     """
-    await database["quizzes"].create_index(
+    quiz_collection = database["quizzes"]
+    await quiz_collection.create_index(
         [("title", 1), ("category_id", 1)],
         unique=True,
+        name="unique_title_per_category",
+    )
+
+    category_collection = database["categories"]
+    await category_collection.create_index(
+        "name",
+        unique=True,
+        name="unique_category_name",
+    )
+
+    question_collection = database["questions"]
+    await question_collection.create_index(
+        [("question_text", 1), ("quiz_id", 1)],
+        unique=True,
+        name="unique_question_text_per_quiz",
     )
