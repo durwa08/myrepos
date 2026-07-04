@@ -47,3 +47,10 @@ class CategoryAlreadyExistsException(Exception):
 class CategoryNotFoundException(Exception):
     """Raised when the requested category does not exist."""
     pass    
+
+class QuestionNotFoundException(Exception):
+    """Raised when a question with the given id does not exist."""
+
+
+class QuestionAlreadyExistsException(Exception):
+    """Raised when a question with the same text already exists within the quiz."""
