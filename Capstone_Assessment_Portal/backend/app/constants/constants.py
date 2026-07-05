@@ -5,7 +5,11 @@ STUDENT_ROLE = "student"
 
 RoleType: TypeAlias = Literal["admin", "student"]
 
-
+# Auth messages
+USER_ALREADY_EXISTS_MESSAGE = "A user with this email already exists."
+INVALID_CREDENTIALS_MESSAGE = "Invalid email or password."
+INVALID_REFRESH_TOKEN_MESSAGE = "Invalid or expired refresh token."
+USER_NOT_FOUND_MESSAGE = "User no longer exists."
 CATEGORY_NOT_FOUND_MESSAGE = "Category not found."
 CATEGORY_ALREADY_EXISTS_MESSAGE = "A category with this name already exists."
 

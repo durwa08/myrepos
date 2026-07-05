@@ -290,3 +290,37 @@ async def test_delete_quiz_not_found(mocker):
 
     with pytest.raises(QuizNotFoundException):
         await service.delete_quiz("missing_id")
+
+@pytest.mark.asyncio
+async def test_update_quiz_duplicate_title(mocker):
+    """
+    Test quiz update fails when renaming to a title that already exists
+    in the same category on a different quiz.
+    """
+    mocker.patch(
+        "app.services.quiz_service.get_quiz_by_id",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "1",
+            "title": "Python Basics",
+            "description": None,
+            "category_id": "6a45f4149915f959917d382b",
+            "time_limit_minutes": 30,
+            "created_by": "durwapahariya08@gmail.com",
+        },
+    )
+    mocker.patch(
+        "app.services.quiz_service.get_quiz_by_title_and_category",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "2",
+            "title": "Advanced Python",
+            "category_id": "6a45f4149915f959917d382b",
+        },
+    )
+
+    service = QuizService()
+    request = QuizUpdateRequest(title="Advanced Python")
+
+    with pytest.raises(QuizAlreadyExistsException):
+        await service.update_quiz("1", request)        

@@ -3,6 +3,7 @@ Test cases for the question repository layer.
 """
 
 from unittest.mock import AsyncMock
+from app.exceptions.custom_exceptions import QuestionAlreadyExistsException
 
 import pytest
 
@@ -282,3 +283,53 @@ def test_serialize_question():
     assert result["id"] == "1"
     assert result["question_text"] == "What is the capital of France?"
     assert result["tags"] == ["geography"]
+
+@pytest.mark.asyncio
+async def test_create_question_duplicate_key_error(mocker):
+    """
+    Test that a DuplicateKeyError from MongoDB is converted into
+    QuestionAlreadyExistsException.
+    """
+    from pymongo.errors import DuplicateKeyError
+
+    mock_collection = mocker.patch(
+        "app.repositories.question_repository.question_collection"
+    )
+    mock_collection.insert_one = AsyncMock(
+        side_effect=DuplicateKeyError("duplicate key")
+    )
+
+    new_question = QuestionModel(
+        quiz_id="6a45f4149915f959917d382b",
+        question_text="What is the capital of France?",
+        question_type="mcq",
+        options=["Paris", "London", "Rome", "Berlin"],
+        correct_answer_index=0,
+        difficulty="easy",
+        tags=[],
+        created_by="durwapahariya08@gmail.com",
+    )
+
+    with pytest.raises(QuestionAlreadyExistsException):
+        await create_question(new_question)
+
+
+@pytest.mark.asyncio
+async def test_update_question_duplicate_key_error(mocker):
+    """
+    Test that a DuplicateKeyError from MongoDB during update is converted
+    into QuestionAlreadyExistsException.
+    """
+    from pymongo.errors import DuplicateKeyError
+
+    mock_collection = mocker.patch(
+        "app.repositories.question_repository.question_collection"
+    )
+    mock_collection.update_one = AsyncMock(
+        side_effect=DuplicateKeyError("duplicate key")
+    )
+
+    with pytest.raises(QuestionAlreadyExistsException):
+        await update_question(
+            "6a45f4149915f959917d382b", {"question_text": "Duplicate text"}
+        )    

@@ -372,3 +372,110 @@ async def test_delete_question_not_found(mocker):
 
     with pytest.raises(QuestionNotFoundException):
         await service.delete_question("missing_id")
+
+@pytest.mark.asyncio
+async def test_update_question_mcq_index_out_of_range(mocker):
+    """
+    Test question update fails when the correct_answer_index is out of
+    range for an MCQ question.
+    """
+    mocker.patch(
+        "app.services.question_service.get_question_by_id",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "1",
+            "quiz_id": "6a45f4149915f959917d382b",
+            "question_text": "What is the capital of France?",
+            "question_type": "mcq",
+            "options": ["Paris", "London", "Rome", "Berlin"],
+            "correct_answer_index": 0,
+            "difficulty": "easy",
+            "tags": [],
+            "created_by": "durwapahariya08@gmail.com",
+        },
+    )
+
+    service = QuestionService()
+    request = QuestionUpdateRequest(correct_answer_index=4)
+
+    with pytest.raises(ValueError):
+        await service.update_question("1", request)
+
+
+@pytest.mark.asyncio
+async def test_update_question_switch_to_true_false_success(mocker):
+    """
+    Test question update succeeds when switching question_type to
+    true_false, auto-filling the correct options.
+    """
+    mocker.patch(
+        "app.services.question_service.get_question_by_id",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "1",
+            "quiz_id": "6a45f4149915f959917d382b",
+            "question_text": "Python is a compiled language.",
+            "question_type": "mcq",
+            "options": ["A", "B", "C", "D"],
+            "correct_answer_index": 0,
+            "difficulty": "easy",
+            "tags": [],
+            "created_by": "durwapahariya08@gmail.com",
+        },
+    )
+    mocker.patch(
+        "app.services.question_service.update_question",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "1",
+            "quiz_id": "6a45f4149915f959917d382b",
+            "question_text": "Python is a compiled language.",
+            "question_type": "true_false",
+            "options": ["True", "False"],
+            "correct_answer_index": 1,
+            "difficulty": "easy",
+            "tags": [],
+            "created_by": "durwapahariya08@gmail.com",
+        },
+    )
+
+    service = QuestionService()
+    request = QuestionUpdateRequest(
+        question_type="true_false", correct_answer_index=1
+    )
+
+    response = await service.update_question("1", request)
+
+    assert response.question_type == "true_false"
+    assert response.options == ["True", "False"]
+
+
+@pytest.mark.asyncio
+async def test_update_question_switch_to_true_false_index_out_of_range(mocker):
+    """
+    Test question update fails when switching to true_false with an
+    invalid correct_answer_index.
+    """
+    mocker.patch(
+        "app.services.question_service.get_question_by_id",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "1",
+            "quiz_id": "6a45f4149915f959917d382b",
+            "question_text": "Python is a compiled language.",
+            "question_type": "mcq",
+            "options": ["A", "B", "C", "D"],
+            "correct_answer_index": 0,
+            "difficulty": "easy",
+            "tags": [],
+            "created_by": "durwapahariya08@gmail.com",
+        },
+    )
+
+    service = QuestionService()
+    request = QuestionUpdateRequest(
+        question_type="true_false", correct_answer_index=2
+    )
+
+    with pytest.raises(ValueError):
+        await service.update_question("1", request)        
