@@ -15,6 +15,8 @@ QUIZ_ALREADY_EXISTS_MESSAGE = (
     "A quiz with this title already exists in the selected category."
 )
 
+QUIZ_DELETED_MESSAGE = "Quiz deleted successfully."
+
 
 INVALID_PASSWORD_MESSAGE = (
     "Password must be at least 8 characters long and include "
