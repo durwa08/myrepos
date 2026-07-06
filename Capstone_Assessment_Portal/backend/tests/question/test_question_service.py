@@ -13,7 +13,7 @@ from app.exceptions.custom_exceptions import (
 )
 from app.schemas.question_schema import QuestionCreateRequest, QuestionUpdateRequest
 from app.services.question_service import QuestionService
-
+from app.schemas.common_schema import MessageResponse
 
 @pytest.mark.asyncio
 async def test_create_question_success(mocker):
@@ -354,7 +354,7 @@ async def test_delete_question_success(mocker):
     service = QuestionService()
     result = await service.delete_question("1")
 
-    assert result is None
+    assert result.message == "Question deleted successfully."
 
 
 @pytest.mark.asyncio

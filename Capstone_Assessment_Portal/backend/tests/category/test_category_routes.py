@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 from app.main import app
 from app.middleware.auth_middleware import get_current_user, require_admin
 from app.schemas.category_schema import CategoryResponse
-
+from app.schemas.common_schema import MessageResponse
 
 def test_create_category_route_as_admin(client, mocker):
     """
@@ -159,7 +159,7 @@ def test_update_category_route_not_found(client, mocker):
 
 def test_delete_category_route_as_admin(client, mocker):
     """
-    Test the delete category endpoint returns 204 for an admin user.
+    Test the delete category endpoint returns 200 with a success message.
     """
     app.dependency_overrides[require_admin] = lambda: {
         "sub": "durwapahariya08@gmail.com",
@@ -168,18 +168,20 @@ def test_delete_category_route_as_admin(client, mocker):
 
     mocker.patch(
         "app.api.v1.category_routes.CategoryService.delete_category",
-        new=AsyncMock(return_value=None),
+        new=AsyncMock(
+            return_value=MessageResponse(message="Category deleted successfully.")
+        ),
     )
 
     response = client.delete(
         "/categories/1", headers={"Authorization": "Bearer fake_token"}
     )
 
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json()["message"] == "Category deleted successfully."
 
     app.dependency_overrides.clear()
-
-
+    
 def test_create_category_route_without_admin_token(client):
     """
     Test the create category endpoint returns 401/403 without admin auth.

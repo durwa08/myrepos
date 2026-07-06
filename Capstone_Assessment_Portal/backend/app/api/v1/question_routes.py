@@ -7,7 +7,7 @@ Correct answers are hidden from the student-facing endpoints.
 """
 
 from fastapi import APIRouter, Depends, status
-
+from app.schemas.common_schema import MessageResponse
 from app.middleware.auth_middleware import get_current_user, require_admin
 from app.schemas.question_schema import (
     QuestionCreateRequest,
@@ -80,7 +80,7 @@ async def update_question(
     return result
 
 
-@router.delete("/{question_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{question_id}", response_model=MessageResponse, status_code=status.HTTP_200_OK)
 async def delete_question(
     question_id: str,
     current_user: dict = Depends(require_admin),
@@ -90,4 +90,5 @@ async def delete_question(
 
     Only administrators are authorized to delete questions.
     """
-    await question_service.delete_question(question_id)
+    result = await question_service.delete_question(question_id)
+    return result

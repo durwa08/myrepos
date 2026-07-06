@@ -10,6 +10,7 @@ from fastapi import APIRouter, Depends, Query, status
 from app.middleware.auth_middleware import get_current_user, require_admin
 from app.schemas.quiz_schema import QuizCreateRequest, QuizResponse, QuizUpdateRequest
 from app.services.quiz_service import QuizService
+from app.schemas.common_schema import MessageResponse
 
 router = APIRouter(prefix="/quizzes", tags=["Quizzes"])
 quiz_service = QuizService()
@@ -72,7 +73,7 @@ async def update_quiz(
     return result
 
 
-@router.delete("/{quiz_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{quiz_id}", response_model=MessageResponse, status_code=status.HTTP_200_OK)
 async def delete_quiz(
     quiz_id: str,
     current_user: dict = Depends(require_admin),
@@ -82,4 +83,5 @@ async def delete_quiz(
 
     Only administrators are authorized to delete quizzes.
     """
-    await quiz_service.delete_quiz(quiz_id)
+    result = await quiz_service.delete_quiz(quiz_id)
+    return result

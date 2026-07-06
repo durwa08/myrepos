@@ -6,7 +6,8 @@ updating, and deleting quizzes.
 """
 
 import logging
-
+from app.constants import QUIZ_DELETED_MESSAGE
+from app.schemas.common_schema import MessageResponse
 from app.exceptions.custom_exceptions import (
     CategoryNotFoundException,
     QuizAlreadyExistsException,
@@ -118,7 +119,7 @@ class QuizService:
         result = QuizResponse(**serialize_quiz(updated))
         return result
 
-    async def delete_quiz(self, quiz_id: str) -> None:
+    async def delete_quiz(self, quiz_id: str) -> MessageResponse:
         """
         Delete an existing quiz.
         """
@@ -127,5 +128,5 @@ class QuizService:
             raise QuizNotFoundException()
 
         logger.info("Quiz deleted with id=%s", quiz_id)
-        result = None
+        result = MessageResponse(message=QUIZ_DELETED_MESSAGE)
         return result

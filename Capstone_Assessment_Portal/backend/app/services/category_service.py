@@ -4,7 +4,8 @@ Service layer for category management.
 Contains the business logic for creating, retrieving,
 updating, and deleting categories.
 """
-
+from app.constants import CATEGORY_DELETED_MESSAGE
+from app.schemas.common_schema import MessageResponse
 from app.exceptions.custom_exceptions import (
     CategoryAlreadyExistsException,
     CategoryNotFoundException,
@@ -88,10 +89,13 @@ class CategoryService:
         result = CategoryResponse(**serialize_category(updated))
         return result
 
-    async def delete_category(self, category_id: str) -> None:
+    async def delete_category(self, category_id: str) -> MessageResponse:
         """
         Delete an existing category.
         """
         deleted = await delete_category(category_id)
         if not deleted:
             raise CategoryNotFoundException()
+
+        result = MessageResponse(message=CATEGORY_DELETED_MESSAGE)
+        return result

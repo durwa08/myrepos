@@ -146,7 +146,7 @@ async def test_delete_category_success(mocker):
     service = CategoryService()
     result = await service.delete_category("1")
 
-    assert result is None
+    assert result.message == "Category deleted successfully."
 
 
 @pytest.mark.asyncio
