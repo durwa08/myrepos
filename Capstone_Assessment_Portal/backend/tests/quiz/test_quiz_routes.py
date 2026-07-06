@@ -7,7 +7,7 @@ from unittest.mock import AsyncMock
 from app.main import app
 from app.middleware.auth_middleware import get_current_user, require_admin
 from app.schemas.quiz_schema import QuizResponse
-
+from app.schemas.common_schema import MessageResponse
 
 def test_create_quiz_route_as_admin(client, mocker):
     """
@@ -209,7 +209,7 @@ def test_update_quiz_route_as_admin(client, mocker):
 
 def test_delete_quiz_route_as_admin(client, mocker):
     """
-    Test the delete quiz endpoint returns 204 for an admin user.
+    Test the delete quiz endpoint returns 200 with a success message.
     """
     app.dependency_overrides[require_admin] = lambda: {
         "sub": "durwapahariya08@gmail.com",
@@ -218,14 +218,17 @@ def test_delete_quiz_route_as_admin(client, mocker):
 
     mocker.patch(
         "app.api.v1.quiz_routes.QuizService.delete_quiz",
-        new=AsyncMock(return_value=None),
+        new=AsyncMock(
+            return_value=MessageResponse(message="Quiz deleted successfully.")
+        ),
     )
 
     response = client.delete(
         "/quizzes/1", headers={"Authorization": "Bearer fake_token"}
     )
 
-    assert response.status_code == 204
+    assert response.status_code == 200
+    assert response.json()["message"] == "Quiz deleted successfully."
 
     app.dependency_overrides.clear()
 
