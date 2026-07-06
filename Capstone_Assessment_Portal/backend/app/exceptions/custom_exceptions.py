@@ -17,6 +17,7 @@ class AdminPrivilegeRequiredException(HTTPException):
             detail="This action requires admin privileges.",
         )
 
+
 class UserAlreadyExistsException(Exception):
     """Raised when a user with the given email already exists."""
     pass
@@ -36,14 +37,18 @@ class UserNotFoundException(Exception):
     """Raised when the user no longer exists."""
     pass
 
-class InvalidTokenException(Exception):
-    """Raised when the JWT token is invalid or expired."""
+
+class CategoryNotFoundException(Exception):
+    """Raised when a category with the given id does not exist."""
+
 
 class CategoryAlreadyExistsException(Exception):
     """Raised when a category with the given name already exists."""
-    pass
 
 
-class CategoryNotFoundException(Exception):
-    """Raised when the requested category does not exist."""
-    pass    
+class QuizNotFoundException(Exception):
+    """Raised when a quiz with the given id does not exist."""
+
+
+class QuizAlreadyExistsException(Exception):
+    """Raised when a quiz with the same title already exists within the category."""
