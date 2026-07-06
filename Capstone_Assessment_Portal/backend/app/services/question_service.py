@@ -10,7 +10,10 @@ import logging
 from app.constants import (
     INVALID_CORRECT_ANSWER_INDEX_MESSAGE,
     INVALID_OPTIONS_COUNT_MESSAGE,
+    MCQ_OPTIONS_COUNT,
+    TRUE_FALSE_OPTIONS,
 )
+
 from app.exceptions.custom_exceptions import (
     QuestionAlreadyExistsException,
     QuestionNotFoundException,
@@ -35,8 +38,7 @@ from app.schemas.question_schema import (
 
 logger = logging.getLogger(__name__)
 
-MCQ_OPTIONS_COUNT = 4
-TRUE_FALSE_OPTIONS = ["True", "False"]
+
 
 
 class QuestionService:

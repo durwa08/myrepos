@@ -9,10 +9,10 @@ from pydantic import BaseModel, Field, model_validator
 from app.constants import (
     INVALID_CORRECT_ANSWER_INDEX_MESSAGE,
     INVALID_OPTIONS_COUNT_MESSAGE,
+    MCQ_OPTIONS_COUNT,
+    TRUE_FALSE_OPTIONS,
 )
 
-TRUE_FALSE_OPTIONS = ["True", "False"]
-MCQ_OPTIONS_COUNT = 4
 
 
 class QuestionCreateRequest(BaseModel):
