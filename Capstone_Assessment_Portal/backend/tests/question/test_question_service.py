@@ -13,7 +13,7 @@ from app.exceptions.custom_exceptions import (
 )
 from app.schemas.question_schema import QuestionCreateRequest, QuestionUpdateRequest
 from app.services.question_service import QuestionService
-
+from app.schemas.common_schema import MessageResponse
 
 @pytest.mark.asyncio
 async def test_create_question_success(mocker):
@@ -354,7 +354,7 @@ async def test_delete_question_success(mocker):
     service = QuestionService()
     result = await service.delete_question("1")
 
-    assert result is None
+    assert result.message == "Question deleted successfully."
 
 
 @pytest.mark.asyncio
@@ -479,3 +479,32 @@ async def test_update_question_switch_to_true_false_index_out_of_range(mocker):
 
     with pytest.raises(ValueError):
         await service.update_question("1", request)        
+
+
+@pytest.mark.asyncio
+async def test_get_question_hides_correct_answer(mocker):
+    """
+    Test that get_question does not expose correct_answer_index,
+    since this is accessible to any authenticated user including
+    students who haven't attempted the quiz.
+    """
+    mocker.patch(
+        "app.services.question_service.get_question_by_id",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "1",
+            "quiz_id": "6a45f4149915f959917d382b",
+            "question_text": "What is the capital of France?",
+            "question_type": "mcq",
+            "options": ["Paris", "London", "Rome", "Berlin"],
+            "correct_answer_index": 0,
+            "difficulty": "easy",
+            "tags": [],
+            "created_by": "durwapahariya08@gmail.com",
+        },
+    )
+
+    service = QuestionService()
+    result = await service.get_question("1")
+
+    assert not hasattr(result, "correct_answer_index")        

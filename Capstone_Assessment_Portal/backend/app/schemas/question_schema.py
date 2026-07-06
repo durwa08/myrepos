@@ -9,10 +9,10 @@ from pydantic import BaseModel, Field, model_validator
 from app.constants import (
     INVALID_CORRECT_ANSWER_INDEX_MESSAGE,
     INVALID_OPTIONS_COUNT_MESSAGE,
+    MCQ_OPTIONS_COUNT,
+    TRUE_FALSE_OPTIONS,
 )
 
-TRUE_FALSE_OPTIONS = ["True", "False"]
-MCQ_OPTIONS_COUNT = 4
 
 
 class QuestionCreateRequest(BaseModel):
@@ -85,3 +85,20 @@ class QuestionResponse(BaseModel):
     difficulty: str
     tags: list[str]
     created_by: str
+
+
+class QuestionPublicResponse(BaseModel):
+    """
+    Public-facing question response with the correct answer hidden.
+
+    Used for endpoints accessible to students, so quiz questions can
+    be viewed without revealing correct_answer_index ahead of time.
+    """
+
+    id: str
+    quiz_id: str
+    question_text: str
+    question_type: str
+    options: list[str]
+    difficulty: str
+    tags: list[str]

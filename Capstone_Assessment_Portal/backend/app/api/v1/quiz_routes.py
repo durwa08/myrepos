@@ -8,17 +8,29 @@ Listing and fetching quizzes is available to any authenticated user.
 from fastapi import APIRouter, Depends, Query, status
 
 from app.middleware.auth_middleware import get_current_user, require_admin
+from app.schemas.common_schema import MessageResponse
 from app.schemas.quiz_schema import QuizCreateRequest, QuizResponse, QuizUpdateRequest
 from app.services.quiz_service import QuizService
+from app.schemas.common_schema import MessageResponse
 
 router = APIRouter(prefix="/quizzes", tags=["Quizzes"])
-quiz_service = QuizService()
+
+
+def get_quiz_service() -> QuizService:
+    """
+    Provide a QuizService instance via FastAPI's dependency injection.
+
+    Allows the service to be swapped out in tests using
+    app.dependency_overrides, instead of patching the class directly.
+    """
+    return QuizService()
 
 
 @router.post("", response_model=QuizResponse, status_code=status.HTTP_201_CREATED)
 async def create_quiz(
     request: QuizCreateRequest,
     current_user: dict = Depends(require_admin),
+    quiz_service: QuizService = Depends(get_quiz_service),
 ):
     """
     Create a new quiz.
@@ -33,6 +45,7 @@ async def create_quiz(
 async def list_quizzes(
     category_id: str | None = Query(default=None),
     current_user: dict = Depends(get_current_user),
+    quiz_service: QuizService = Depends(get_quiz_service),
 ):
     """
     Retrieve all quizzes, optionally filtered by category_id.
@@ -47,6 +60,7 @@ async def list_quizzes(
 async def get_quiz(
     quiz_id: str,
     current_user: dict = Depends(get_current_user),
+    quiz_service: QuizService = Depends(get_quiz_service),
 ):
     """
     Retrieve a single quiz by its id.
@@ -62,6 +76,7 @@ async def update_quiz(
     quiz_id: str,
     request: QuizUpdateRequest,
     current_user: dict = Depends(require_admin),
+    quiz_service: QuizService = Depends(get_quiz_service),
 ):
     """
     Update an existing quiz.
@@ -72,14 +87,16 @@ async def update_quiz(
     return result
 
 
-@router.delete("/{quiz_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{quiz_id}", response_model=MessageResponse, status_code=status.HTTP_200_OK)
 async def delete_quiz(
     quiz_id: str,
     current_user: dict = Depends(require_admin),
+    quiz_service: QuizService = Depends(get_quiz_service),
 ):
     """
     Delete a quiz.
 
     Only administrators are authorized to delete quizzes.
     """
-    await quiz_service.delete_quiz(quiz_id)
+    result = await quiz_service.delete_quiz(quiz_id)
+    return result

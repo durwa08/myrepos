@@ -272,7 +272,7 @@ async def test_delete_quiz_success(mocker):
     service = QuizService()
     result = await service.delete_quiz("1")
 
-    assert result is None
+    assert result.message == "Quiz deleted successfully."
 
 
 @pytest.mark.asyncio
