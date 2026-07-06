@@ -12,6 +12,7 @@ from app.constants import (
     INVALID_OPTIONS_COUNT_MESSAGE,
     MCQ_OPTIONS_COUNT,
     TRUE_FALSE_OPTIONS,
+    QUESTION_DELETED_MESSAGE,
 )
 from app.exceptions.custom_exceptions import (
     QuestionAlreadyExistsException,
@@ -29,12 +30,15 @@ from app.repositories.question_repository import (
     update_question,
 )
 from app.repositories.quiz_repository import get_quiz_by_id
+from app.schemas.common_schema import MessageResponse
 from app.schemas.question_schema import (
     QuestionCreateRequest,
     QuestionPublicResponse,
     QuestionResponse,
     QuestionUpdateRequest,
+    
 )
+
 
 logger = logging.getLogger(__name__)
 
@@ -161,7 +165,7 @@ class QuestionService:
         result = QuestionResponse(**serialize_question(updated))
         return result
 
-    async def delete_question(self, question_id: str) -> None:
+    async def delete_question(self, question_id: str) -> MessageResponse:
         """
         Delete an existing question.
         """
@@ -170,5 +174,5 @@ class QuestionService:
             raise QuestionNotFoundException()
 
         logger.info("Question deleted with id=%s", question_id)
-        result = None
+        result = MessageResponse(message=QUESTION_DELETED_MESSAGE)
         return result
