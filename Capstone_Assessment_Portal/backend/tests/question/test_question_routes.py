@@ -266,3 +266,39 @@ def test_create_question_route_without_admin_token(client):
     )
 
     assert response.status_code in (401, 403)
+
+
+def test_get_question_route_hides_correct_answer(client, mocker):
+    """
+    Test that the get single question endpoint response never contains
+    correct_answer_index, even though the underlying document has it.
+    """
+    mocker.patch(
+        "app.services.question_service.get_question_by_id",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "1",
+            "quiz_id": "6a45f4149915f959917d382b",
+            "question_text": "What is the capital of France?",
+            "question_type": "mcq",
+            "options": ["Paris", "London", "Rome", "Berlin"],
+            "correct_answer_index": 0,
+            "difficulty": "easy",
+            "tags": [],
+            "created_by": "durwapahariya08@gmail.com",
+        },
+    )
+
+    app.dependency_overrides[get_current_user] = lambda: {
+        "sub": "durwa08@gmail.com",
+        "role": "student",
+    }
+
+    response = client.get(
+        "/questions/1", headers={"Authorization": "Bearer fake_token"}
+    )
+
+    assert response.status_code == 200
+    assert "correct_answer_index" not in response.json()
+
+    app.dependency_overrides.clear()    

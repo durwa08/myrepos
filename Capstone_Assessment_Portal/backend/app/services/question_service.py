@@ -13,14 +13,12 @@ from app.constants import (
     MCQ_OPTIONS_COUNT,
     TRUE_FALSE_OPTIONS,
 )
-
 from app.exceptions.custom_exceptions import (
     QuestionAlreadyExistsException,
     QuestionNotFoundException,
     QuizNotFoundException,
 )
 from app.models.question_model import QuestionModel
-from app.repositories.quiz_repository import get_quiz_by_id
 from app.repositories.question_repository import (
     create_question,
     delete_question,
@@ -30,15 +28,15 @@ from app.repositories.question_repository import (
     serialize_question,
     update_question,
 )
+from app.repositories.quiz_repository import get_quiz_by_id
 from app.schemas.question_schema import (
     QuestionCreateRequest,
+    QuestionPublicResponse,
     QuestionResponse,
     QuestionUpdateRequest,
 )
 
 logger = logging.getLogger(__name__)
-
-
 
 
 class QuestionService:
@@ -82,29 +80,36 @@ class QuestionService:
         result = QuestionResponse(**serialize_question(created))
         return result
 
-    async def get_questions_by_quiz(self, quiz_id: str) -> list[QuestionResponse]:
+    async def get_questions_by_quiz(self, quiz_id: str) -> list[QuestionPublicResponse]:
         """
         Retrieve all questions belonging to a quiz.
 
-        Validates that the quiz itself exists first.
+        Returns the student-safe view, excluding correct_answer_index,
+        since this is accessible to any authenticated user including
+        students who haven't attempted the quiz yet.
         """
         quiz = await get_quiz_by_id(quiz_id)
         if quiz is None:
             raise QuizNotFoundException()
 
         questions = await list_questions_by_quiz(quiz_id)
-        result = [QuestionResponse(**serialize_question(q)) for q in questions]
+        result = [
+            QuestionPublicResponse(**serialize_question(q)) for q in questions
+        ]
         return result
 
-    async def get_question(self, question_id: str) -> QuestionResponse:
+    async def get_question(self, question_id: str) -> QuestionPublicResponse:
         """
         Retrieve a single question by its id.
+
+        Returns the student-safe view, excluding correct_answer_index,
+        since this is accessible to any authenticated user.
         """
         question = await get_question_by_id(question_id)
         if question is None:
             raise QuestionNotFoundException()
 
-        result = QuestionResponse(**serialize_question(question))
+        result = QuestionPublicResponse(**serialize_question(question))
         return result
 
     async def update_question(

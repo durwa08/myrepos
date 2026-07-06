@@ -85,3 +85,20 @@ class QuestionResponse(BaseModel):
     difficulty: str
     tags: list[str]
     created_by: str
+
+
+class QuestionPublicResponse(BaseModel):
+    """
+    Public-facing question response with the correct answer hidden.
+
+    Used for endpoints accessible to students, so quiz questions can
+    be viewed without revealing correct_answer_index ahead of time.
+    """
+
+    id: str
+    quiz_id: str
+    question_text: str
+    question_type: str
+    options: list[str]
+    difficulty: str
+    tags: list[str]
