@@ -6,8 +6,8 @@ updating, and deleting quizzes.
 """
 
 import logging
+
 from app.constants import QUIZ_DELETED_MESSAGE
-from app.schemas.common_schema import MessageResponse
 from app.exceptions.custom_exceptions import (
     CategoryNotFoundException,
     QuizAlreadyExistsException,
@@ -24,6 +24,7 @@ from app.repositories.quiz_repository import (
     serialize_quiz,
     update_quiz,
 )
+from app.schemas.common_schema import MessageResponse
 from app.schemas.quiz_schema import QuizCreateRequest, QuizResponse, QuizUpdateRequest
 
 logger = logging.getLogger(__name__)
@@ -64,7 +65,9 @@ class QuizService:
         result = QuizResponse(**serialize_quiz(created))
         return result
 
-    async def get_all_quizzes(self, category_id: str | None = None) -> list[QuizResponse]:
+    async def get_all_quizzes(
+        self, category_id: str | None = None
+    ) -> list[QuizResponse]:
         """
         Retrieve all quizzes, optionally filtered by category.
         """
