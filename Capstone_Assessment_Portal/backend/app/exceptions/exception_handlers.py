@@ -9,10 +9,12 @@ from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
 from app.constants import (
+    ATTEMPT_NOT_FOUND_MESSAGE,
     CATEGORY_ALREADY_EXISTS_MESSAGE,
     CATEGORY_NOT_FOUND_MESSAGE,
     INVALID_CREDENTIALS_MESSAGE,
     INVALID_REFRESH_TOKEN_MESSAGE,
+    MAX_ATTEMPTS_REACHED_MESSAGE,
     QUESTION_ALREADY_EXISTS_MESSAGE,
     QUESTION_NOT_FOUND_MESSAGE,
     QUIZ_ALREADY_EXISTS_MESSAGE,
@@ -20,11 +22,14 @@ from app.constants import (
     USER_ALREADY_EXISTS_MESSAGE,
     USER_NOT_FOUND_MESSAGE,
 )
+
 from app.exceptions.custom_exceptions import (
+    AttemptNotFoundException,
     CategoryAlreadyExistsException,
     CategoryNotFoundException,
     InvalidCredentialsException,
     InvalidRefreshTokenException,
+    MaxAttemptsReachedException,
     QuestionAlreadyExistsException,
     QuestionNotFoundException,
     QuizAlreadyExistsException,
@@ -114,6 +119,22 @@ async def question_already_exists_handler(request: Request, exc: QuestionAlready
     )
 
 
+async def attempt_not_found_handler(request: Request, exc: AttemptNotFoundException):
+    """Handle lookups for an attempt that does not exist."""
+    return JSONResponse(
+        status_code=404,
+        content={"detail": ATTEMPT_NOT_FOUND_MESSAGE},
+    )
+
+
+async def max_attempts_reached_handler(request: Request, exc: MaxAttemptsReachedException):
+    """Handle attempts that exceed the maximum allowed limit."""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": MAX_ATTEMPTS_REACHED_MESSAGE},
+    )
+
+
 def register_exception_handlers(app: FastAPI) -> None:
     """
     Register all custom exception handlers on the given FastAPI app.
@@ -131,3 +152,5 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(QuizAlreadyExistsException, quiz_already_exists_handler)
     app.add_exception_handler(QuestionNotFoundException, question_not_found_handler)
     app.add_exception_handler(QuestionAlreadyExistsException, question_already_exists_handler)
+    app.add_exception_handler(AttemptNotFoundException, attempt_not_found_handler)
+    app.add_exception_handler(MaxAttemptsReachedException, max_attempts_reached_handler)

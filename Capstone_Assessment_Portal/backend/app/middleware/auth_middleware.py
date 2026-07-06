@@ -4,6 +4,7 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from app.exceptions.custom_exceptions import (
     InvalidTokenException,
     AdminPrivilegeRequiredException,
+    StudentPrivilegeRequiredException,
 )
 from app.utils.security import decode_access_token
 
@@ -38,5 +39,19 @@ async def require_admin(
     """
     if current_user.get("role") != "admin":
         raise AdminPrivilegeRequiredException()
+
+    return current_user
+
+
+async def require_student(
+    current_user: dict = Depends(get_current_user),
+) -> dict:
+    """
+    Verify that the authenticated user has the student role.
+
+    Raises an exception if the user is not a student.
+    """
+    if current_user.get("role") != "student":
+        raise StudentPrivilegeRequiredException()
 
     return current_user

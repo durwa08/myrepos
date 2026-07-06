@@ -13,6 +13,7 @@ from app.api.v1.question_routes import router as question_router
 from app.api.v1.quiz_routes import router as quiz_router
 from app.config.database import ensure_indexes
 from app.exceptions.exception_handlers import register_exception_handlers
+from app.api.v1.attempt_routes import router as attempt_router
 
 app = FastAPI(
     title="Assessment Portal API",
@@ -35,7 +36,7 @@ app.include_router(auth_router)
 app.include_router(category_router)
 app.include_router(quiz_router)
 app.include_router(question_router)
-
+app.include_router(attempt_router)
 
 @app.get("/")
 def health_check():

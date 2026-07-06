@@ -60,3 +60,18 @@ class QuestionNotFoundException(Exception):
 
 class QuestionAlreadyExistsException(Exception):
     """Raised when a question with the same text already exists within the quiz."""
+
+class AttemptNotFoundException(Exception):
+    """Raised when an attempt with the given id does not exist."""
+
+
+class MaxAttemptsReachedException(Exception):
+    """Raised when a student has already used all allowed attempts for a quiz."""    
+
+
+class StudentPrivilegeRequiredException(HTTPException):
+    def __init__(self):
+        super().__init__(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="This action requires student privileges.",
+        )
