@@ -28,6 +28,7 @@ def test_create_quiz_route_as_admin(client, mocker):
                 description=None,
                 category_id="6a45f4149915f959917d382b",
                 time_limit_minutes=30,
+                pass_percentage=40.0,
                 created_by="durwapahariya08@gmail.com",
             )
         ),
@@ -99,6 +100,7 @@ def test_list_quizzes_route(client, mocker):
                     description=None,
                     category_id="6a45f4149915f959917d382b",
                     time_limit_minutes=30,
+                    pass_percentage=40.0,
                     created_by="durwapahariya08@gmail.com",
                 )
             ]
@@ -133,6 +135,7 @@ def test_get_quiz_route(client, mocker):
                 description=None,
                 category_id="6a45f4149915f959917d382b",
                 time_limit_minutes=30,
+                pass_percentage=40.0,
                 created_by="durwapahariya08@gmail.com",
             )
         ),
@@ -191,6 +194,7 @@ def test_update_quiz_route_as_admin(client, mocker):
                 description=None,
                 category_id="6a45f4149915f959917d382b",
                 time_limit_minutes=45,
+                pass_percentage=40.0,
                 created_by="durwapahariya08@gmail.com",
             )
         ),

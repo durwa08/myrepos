@@ -16,7 +16,7 @@ class QuizCreateRequest(BaseModel):
     description: Optional[str] = Field(default=None, max_length=1000)
     category_id: str
     time_limit_minutes: int = Field(gt=0, le=300)
-
+    pass_percentage: float = Field(default=40.0, ge=0, le=100)
 
 class QuizUpdateRequest(BaseModel):
     """
@@ -29,7 +29,7 @@ class QuizUpdateRequest(BaseModel):
     description: Optional[str] = Field(default=None, max_length=1000)
     category_id: Optional[str] = None
     time_limit_minutes: Optional[int] = Field(default=None, gt=0, le=300)
-
+    pass_percentage: Optional[float] = Field(default=None, ge=0, le=100)
 
 class QuizResponse(BaseModel):
     """
@@ -41,6 +41,7 @@ class QuizResponse(BaseModel):
     description: Optional[str] = None
     category_id: str
     time_limit_minutes: int
+    pass_percentage: float
     created_by: str
 
     class Config:

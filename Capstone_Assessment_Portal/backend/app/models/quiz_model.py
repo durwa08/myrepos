@@ -10,18 +10,16 @@ from pydantic import BaseModel, Field
 
 class QuizModel(BaseModel):
     """
-    Represents a quiz document in the database.
+    Represents a quiz document to be created in the database.
+
+    This model intentionally has no id field, since MongoDB assigns
+    the _id automatically on insert.
     """
 
-    id: Optional[str] = Field(default=None, alias="_id")
     title: str
     description: Optional[str] = None
     category_id: str
     time_limit_minutes: int
+    pass_percentage: float = 40.0
     created_by: str
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
-
-    class Config:
-        """Pydantic configuration for MongoDB field mapping."""
-
-        populate_by_name = True
