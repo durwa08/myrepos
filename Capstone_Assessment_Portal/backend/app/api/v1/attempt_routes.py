@@ -12,7 +12,16 @@ from app.schemas.attempt_schema import AttemptResponse
 from app.services.attempt_service import AttemptService
 
 router = APIRouter(prefix="/attempts", tags=["Attempts"])
-attempt_service = AttemptService()
+
+
+def get_attempt_service() -> AttemptService:
+    """
+    Provide an AttemptService instance via FastAPI's dependency injection.
+
+    Allows the service to be swapped out in tests using
+    app.dependency_overrides, instead of patching the class directly.
+    """
+    return AttemptService()
 
 
 @router.post(
@@ -23,6 +32,7 @@ attempt_service = AttemptService()
 async def start_attempt(
     quiz_id: str,
     current_user: dict = Depends(require_student),
+    attempt_service: AttemptService = Depends(get_attempt_service),
 ):
     """
     Start a new quiz attempt.
