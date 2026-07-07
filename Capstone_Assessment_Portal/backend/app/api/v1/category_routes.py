@@ -6,7 +6,7 @@ Listing categories is available to any authenticated user.
 """
 
 from fastapi import APIRouter, Depends, status
-
+from app.schemas.common_schema import MessageResponse
 from app.middleware.auth_middleware import get_current_user, require_admin
 from app.schemas.category_schema import (
     CategoryCreateRequest,
@@ -76,7 +76,7 @@ async def update_category(
     return result
 
 
-@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete("/{category_id}", response_model=MessageResponse, status_code=status.HTTP_200_OK)
 async def delete_category(
     category_id: str,
     current_user: dict = Depends(require_admin),
@@ -86,4 +86,5 @@ async def delete_category(
 
     Only administrators are authorized to delete categories.
     """
-    await category_service.delete_category(category_id)
+    result = await category_service.delete_category(category_id)
+    return result

@@ -146,7 +146,7 @@ async def test_delete_category_success(mocker):
     service = CategoryService()
     result = await service.delete_category("1")
 
-    assert result is None
+    assert result.message == "Category deleted successfully."
 
 
 @pytest.mark.asyncio
@@ -164,4 +164,40 @@ async def test_delete_category_not_found(mocker):
 
     with pytest.raises(CategoryNotFoundException):
         await service.delete_category("missing_id")
-        
+
+@pytest.mark.asyncio
+async def test_get_category_by_id_success(mocker):
+    """
+    Test retrieving a single category by its id.
+    """
+    mocker.patch(
+        "app.services.category_service.get_category_by_id",
+        new_callable=AsyncMock,
+        return_value={
+            "_id": "1",
+            "name": "Python",
+            "created_by": "durwapahariya08@gmail.com",
+        },
+    )
+
+    service = CategoryService()
+    result = await service.get_category_by_id("1")
+
+    assert result.name == "Python"
+
+
+@pytest.mark.asyncio
+async def test_get_category_by_id_not_found(mocker):
+    """
+    Test retrieving a category fails when it does not exist.
+    """
+    mocker.patch(
+        "app.services.category_service.get_category_by_id",
+        new_callable=AsyncMock,
+        return_value=None,
+    )
+
+    service = CategoryService()
+
+    with pytest.raises(CategoryNotFoundException):
+        await service.get_category_by_id("missing_id")        

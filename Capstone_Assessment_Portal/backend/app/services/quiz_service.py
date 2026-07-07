@@ -131,6 +131,5 @@ class QuizService:
             raise QuizNotFoundException()
 
         logger.info("Quiz deleted with id=%s", quiz_id)
-
         result = MessageResponse(message=QUIZ_DELETED_MESSAGE)
         return result

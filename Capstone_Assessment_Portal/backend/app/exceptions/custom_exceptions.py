@@ -52,3 +52,11 @@ class QuizNotFoundException(Exception):
 
 class QuizAlreadyExistsException(Exception):
     """Raised when a quiz with the same title already exists within the category."""
+
+
+class QuestionNotFoundException(Exception):
+    """Raised when a question with the given id does not exist."""
+
+
+class QuestionAlreadyExistsException(Exception):
+    """Raised when a question with the same text already exists within the quiz."""

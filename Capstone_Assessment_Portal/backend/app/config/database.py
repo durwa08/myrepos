@@ -24,10 +24,10 @@ async def ensure_indexes():
     """
     Create required MongoDB indexes during application startup.
 
-    Ensures quiz titles are unique within a category, and category
-    names are globally unique, at the database level — guarding
-    against race conditions that a pre-check in the service layer
-    alone cannot fully prevent.
+    Ensures quiz titles are unique within a category, category names
+    are globally unique, and question text is unique within a quiz —
+    at the database level, guarding against race conditions that a
+    pre-check in the service layer alone cannot fully prevent.
     """
     quiz_collection = database["quizzes"]
     await quiz_collection.create_index(
@@ -41,4 +41,11 @@ async def ensure_indexes():
         "name",
         unique=True,
         name="unique_category_name",
+    )
+
+    question_collection = database["questions"]
+    await question_collection.create_index(
+        [("question_text", 1), ("quiz_id", 1)],
+        unique=True,
+        name="unique_question_text_per_quiz",
     )
