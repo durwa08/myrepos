@@ -94,3 +94,24 @@ class AttemptResultResponse(BaseModel):
         """Pydantic configuration for datetime JSON serialization."""
 
         json_encoders = {datetime: lambda dt: dt.isoformat()}
+
+class ResultHistoryItem(BaseModel):
+    """
+    Lightweight summary of a submitted attempt, used in history and
+    admin dashboard listings.
+    """
+
+    id: str
+    quiz_id: str
+    student_id: str
+    attempt_number: int
+    total_questions: int
+    correct_answers: int
+    percentage: float
+    passed: bool
+    submitted_at: datetime
+
+    class Config:
+        """Pydantic configuration for datetime JSON serialization."""
+
+        json_encoders = {datetime: lambda dt: dt.isoformat()}        

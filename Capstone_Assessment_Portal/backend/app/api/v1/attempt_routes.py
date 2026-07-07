@@ -1,14 +1,20 @@
 """
 API routes for quiz attempts.
 
-Starting an attempt is restricted to students, since only candidates
-take quizzes in this system.
+Starting, resuming, saving answers, submitting, and viewing results
+for an attempt is restricted to students, since only candidates take
+quizzes in this system. The admin dashboard is restricted to admins.
 """
 
 from fastapi import APIRouter, Depends, status
 
-from app.middleware.auth_middleware import require_student
-from app.schemas.attempt_schema import AnswerSaveRequest, AttemptResponse, AttemptResultResponse
+from app.middleware.auth_middleware import require_admin, require_student
+from app.schemas.attempt_schema import (
+    AnswerSaveRequest,
+    AttemptResponse,
+    AttemptResultResponse,
+    ResultHistoryItem,
+)
 from app.services.attempt_service import AttemptService
 
 router = APIRouter(prefix="/attempts", tags=["Attempts"])
@@ -46,22 +52,49 @@ async def start_attempt(
     )
     return result
 
-@router.get("/{attempt_id}", response_model=AttemptResponse)
-async def resume_attempt(
+
+@router.get("/history/me", response_model=list[ResultHistoryItem])
+async def get_my_history(
+    current_user: dict = Depends(require_student),
+    attempt_service: AttemptService = Depends(get_attempt_service),
+):
+    """
+    Retrieve the current student's full attempt result history.
+    """
+    result = await attempt_service.get_history(student_id=current_user["sub"])
+    return result
+
+
+@router.get("/admin/dashboard", response_model=list[ResultHistoryItem])
+async def get_admin_dashboard(
+    current_user: dict = Depends(require_admin),
+    attempt_service: AttemptService = Depends(get_attempt_service),
+):
+    """
+    Retrieve every submitted attempt result across all students.
+
+    Only administrators can access this dashboard.
+    """
+    result = await attempt_service.get_admin_dashboard()
+    return result
+
+
+@router.get("/{attempt_id}/result", response_model=AttemptResultResponse)
+async def get_attempt_result(
     attempt_id: str,
     current_user: dict = Depends(require_student),
     attempt_service: AttemptService = Depends(get_attempt_service),
 ):
     """
-    Resume an in-progress attempt.
+    View the result of a submitted attempt.
 
-    Only the student who owns the attempt can access it. Attempts
-    past their time limit are rejected and marked expired.
+    Only the student who owns the attempt can view its result.
     """
-    result = await attempt_service.resume_attempt(
+    result = await attempt_service.get_result(
         attempt_id, student_id=current_user["sub"]
     )
     return result
+
 
 @router.patch("/{attempt_id}/answers", response_model=AttemptResponse)
 async def save_answer(
@@ -80,6 +113,7 @@ async def save_answer(
     )
     return result
 
+
 @router.post("/{attempt_id}/submit", response_model=AttemptResultResponse)
 async def submit_attempt(
     attempt_id: str,
@@ -93,6 +127,24 @@ async def submit_attempt(
     attempts can still be submitted; already-submitted attempts cannot.
     """
     result = await attempt_service.submit_attempt(
+        attempt_id, student_id=current_user["sub"]
+    )
+    return result
+
+
+@router.get("/{attempt_id}", response_model=AttemptResponse)
+async def resume_attempt(
+    attempt_id: str,
+    current_user: dict = Depends(require_student),
+    attempt_service: AttemptService = Depends(get_attempt_service),
+):
+    """
+    Resume an in-progress attempt.
+
+    Only the student who owns the attempt can access it. Attempts
+    past their time limit are rejected and marked expired.
+    """
+    result = await attempt_service.resume_attempt(
         attempt_id, student_id=current_user["sub"]
     )
     return result

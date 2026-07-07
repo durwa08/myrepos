@@ -24,6 +24,7 @@ from app.constants import (
     ATTEMPT_ACCESS_DENIED_MESSAGE,
     ATTEMPT_EXPIRED_MESSAGE,
     ATTEMPT_ALREADY_SUBMITTED_MESSAGE,
+    ATTEMPT_NOT_SUBMITTED_MESSAGE,
 )
 
 from app.exceptions.custom_exceptions import (
@@ -43,6 +44,7 @@ from app.exceptions.custom_exceptions import (
     AttemptExpiredException,
     InvalidAttemptAnswerException,
     AttemptAlreadySubmittedException,
+    AttemptNotSubmittedException,
 )
 
 
@@ -169,6 +171,12 @@ async def attempt_already_submitted_handler(request: Request, exc: AttemptAlread
         status_code=400,
         content={"detail": ATTEMPT_ALREADY_SUBMITTED_MESSAGE},
     )
+async def attempt_not_submitted_handler(request: Request, exc: AttemptNotSubmittedException):
+    """Handle attempts to view the result of an unsubmitted attempt."""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": ATTEMPT_NOT_SUBMITTED_MESSAGE},
+    )
 
 def register_exception_handlers(app: FastAPI) -> None:
     """
@@ -193,3 +201,4 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(AttemptAccessDeniedException, attempt_access_denied_handler)
     app.add_exception_handler(InvalidAttemptAnswerException, invalid_attempt_answer_handler)
     app.add_exception_handler(AttemptAlreadySubmittedException, attempt_already_submitted_handler)
+    app.add_exception_handler(AttemptNotSubmittedException, attempt_not_submitted_handler)
