@@ -43,6 +43,17 @@ async def get_attempt_by_id(attempt_id: str) -> dict | None:
 
     return attempt
 
+async def get_active_attempt(student_id: str, quiz_id: str) -> dict | None:
+    """
+    Retrieve a student's currently in-progress attempt for a quiz, if any.
+
+    Returns None if no in-progress attempt exists.
+    """
+    attempt = await attempt_collection.find_one(
+        {"student_id": student_id, "quiz_id": quiz_id, "status": "in_progress"}
+    )
+    return attempt
+
 
 async def create_attempt(attempt: AttemptModel) -> dict:
     """

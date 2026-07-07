@@ -27,6 +27,7 @@ from app.models.attempt_model import AttemptModel
 from app.repositories.attempt_repository import (
     count_attempts_by_student_and_quiz,
     create_attempt,
+    get_active_attempt,
     get_attempt_by_id,
     mark_attempt_expired,
     save_answer,
@@ -46,14 +47,32 @@ class AttemptService:
         """
         Start a new quiz attempt for a student.
 
-        Validates the quiz exists, enforces the maximum attempts limit,
-        and locks a snapshot of the quiz's current questions (including
-        correct answers) so later question edits cannot affect this
-        attempt's grading.
+        If the student already has an unexpired, in-progress attempt
+        for this quiz, that attempt is returned as-is instead of
+        creating a new one. If an in-progress attempt has passed its
+        time limit, it is marked expired before proceeding.
+
+        Otherwise, validates the quiz exists, enforces the maximum
+        attempts limit, and locks a snapshot of the quiz's current
+        questions (including correct answers) so later question edits
+        cannot affect this attempt's grading.
         """
         quiz = await get_quiz_by_id(quiz_id)
         if quiz is None:
             raise QuizNotFoundException()
+
+        active_attempt = await get_active_attempt(student_id, quiz_id)
+        if active_attempt is not None:
+            now = datetime.now(timezone.utc)
+            expires_at = active_attempt["expires_at"]
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+            if now <= expires_at:
+                result = AttemptResponse(**serialize_attempt(active_attempt))
+                return result
+
+            await mark_attempt_expired(str(active_attempt["_id"]))
 
         existing_attempts = await count_attempts_by_student_and_quiz(
             student_id, quiz_id
@@ -95,6 +114,8 @@ class AttemptService:
 
         result = AttemptResponse(**serialize_attempt(created))
         return result
+    
+
 
     async def _get_valid_attempt(self, attempt_id: str, student_id: str) -> dict:
         """
