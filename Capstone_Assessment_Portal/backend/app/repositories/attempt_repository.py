@@ -99,6 +99,24 @@ async def mark_attempt_expired(attempt_id: str) -> None:
     except InvalidId:
         pass
 
+async def submit_attempt(attempt_id: str, submission_data: dict) -> dict | None:
+    """
+    Finalize an attempt with its computed score and breakdown.
+
+    Returns the updated attempt document, or None if the ID is invalid.
+    """
+    updated_attempt = None
+
+    try:
+        obj_id = ObjectId(attempt_id)
+        await attempt_collection.update_one(
+            {"_id": obj_id}, {"$set": submission_data}
+        )
+        updated_attempt = await attempt_collection.find_one({"_id": obj_id})
+    except InvalidId:
+        updated_attempt = None
+
+    return updated_attempt
 
 
 def serialize_attempt(attempt: dict) -> dict:

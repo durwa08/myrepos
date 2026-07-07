@@ -28,4 +28,7 @@ class AttemptModel(BaseModel):
     started_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     expires_at: datetime
     submitted_at: Optional[datetime] = None
-    score: Optional[float] = None
+    total_questions: Optional[int] = None
+    correct_answers: Optional[int] = None
+    percentage: Optional[float] = None
+    passed: Optional[bool] = None

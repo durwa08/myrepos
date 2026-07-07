@@ -93,3 +93,6 @@ class InvalidAttemptAnswerException(Exception):
     def __init__(self, detail: str = "Invalid answer for this attempt."):
         self.detail = detail
         super().__init__(detail)
+
+class AttemptAlreadySubmittedException(Exception):
+    """Raised when a student tries to submit an attempt that was already submitted."""        

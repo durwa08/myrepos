@@ -23,6 +23,7 @@ from app.constants import (
     USER_NOT_FOUND_MESSAGE,
     ATTEMPT_ACCESS_DENIED_MESSAGE,
     ATTEMPT_EXPIRED_MESSAGE,
+    ATTEMPT_ALREADY_SUBMITTED_MESSAGE,
 )
 
 from app.exceptions.custom_exceptions import (
@@ -41,6 +42,7 @@ from app.exceptions.custom_exceptions import (
     AttemptAccessDeniedException,
     AttemptExpiredException,
     InvalidAttemptAnswerException,
+    AttemptAlreadySubmittedException,
 )
 
 
@@ -161,7 +163,12 @@ async def invalid_attempt_answer_handler(request: Request, exc: InvalidAttemptAn
         status_code=400,
         content={"detail": exc.detail},
     )
-
+async def attempt_already_submitted_handler(request: Request, exc: AttemptAlreadySubmittedException):
+    """Handle attempts to re-submit an already-submitted attempt."""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": ATTEMPT_ALREADY_SUBMITTED_MESSAGE},
+    )
 
 def register_exception_handlers(app: FastAPI) -> None:
     """
@@ -185,3 +192,4 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(AttemptExpiredException, attempt_expired_handler)
     app.add_exception_handler(AttemptAccessDeniedException, attempt_access_denied_handler)
     app.add_exception_handler(InvalidAttemptAnswerException, invalid_attempt_answer_handler)
+    app.add_exception_handler(AttemptAlreadySubmittedException, attempt_already_submitted_handler)

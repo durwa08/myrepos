@@ -8,7 +8,7 @@ take quizzes in this system.
 from fastapi import APIRouter, Depends, status
 
 from app.middleware.auth_middleware import require_student
-from app.schemas.attempt_schema import AnswerSaveRequest, AttemptResponse
+from app.schemas.attempt_schema import AnswerSaveRequest, AttemptResponse, AttemptResultResponse
 from app.services.attempt_service import AttemptService
 
 router = APIRouter(prefix="/attempts", tags=["Attempts"])
@@ -77,5 +77,22 @@ async def save_answer(
     """
     result = await attempt_service.save_answer(
         attempt_id, request, student_id=current_user["sub"]
+    )
+    return result
+
+@router.post("/{attempt_id}/submit", response_model=AttemptResultResponse)
+async def submit_attempt(
+    attempt_id: str,
+    current_user: dict = Depends(require_student),
+    attempt_service: AttemptService = Depends(get_attempt_service),
+):
+    """
+    Submit an attempt and receive the computed score and breakdown.
+
+    Only the student who owns the attempt can submit it. Expired
+    attempts can still be submitted; already-submitted attempts cannot.
+    """
+    result = await attempt_service.submit_attempt(
+        attempt_id, student_id=current_user["sub"]
     )
     return result

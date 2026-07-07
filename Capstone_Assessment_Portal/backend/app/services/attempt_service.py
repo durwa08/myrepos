@@ -17,6 +17,7 @@ from app.constants import (
 )
 from app.exceptions.custom_exceptions import (
     AttemptAccessDeniedException,
+    AttemptAlreadySubmittedException,
     AttemptExpiredException,
     AttemptNotFoundException,
     InvalidAttemptAnswerException,
@@ -25,18 +26,23 @@ from app.exceptions.custom_exceptions import (
 )
 from app.models.attempt_model import AttemptModel
 from app.repositories.attempt_repository import (
-    count_attempts_by_student_and_quiz,
+   count_attempts_by_student_and_quiz,
     create_attempt,
     get_active_attempt,
     get_attempt_by_id,
     mark_attempt_expired,
     save_answer,
     serialize_attempt,
+    submit_attempt,
 )
 from app.repositories.question_repository import list_questions_by_quiz
 from app.repositories.quiz_repository import get_quiz_by_id
-from app.schemas.attempt_schema import AnswerSaveRequest, AttemptResponse
-
+from app.schemas.attempt_schema import (
+    AnswerBreakdownItem,
+    AnswerSaveRequest,
+    AttemptResponse,
+    AttemptResultResponse,
+)
 logger = logging.getLogger(__name__)
 
 
@@ -188,4 +194,89 @@ class AttemptService:
         )
 
         result = AttemptResponse(**serialize_attempt(updated))
+        return result
+    
+    async def submit_attempt(self, attempt_id: str, student_id: str) -> AttemptResultResponse:
+        """
+        Submit an attempt and compute its score.
+
+        Ownership is verified, but unlike resume/save_answer, an
+        expired attempt is still allowed to be submitted (finalizing
+        it automatically) rather than being rejected. Already-submitted
+        attempts cannot be submitted again.
+        """
+        attempt = await get_attempt_by_id(attempt_id)
+        if attempt is None:
+            raise AttemptNotFoundException()
+
+        if attempt["student_id"] != student_id:
+            raise AttemptAccessDeniedException()
+
+        if attempt["status"] == "submitted":
+            raise AttemptAlreadySubmittedException()
+
+        saved_answers = attempt.get("answers", {})
+        questions_snapshot = attempt["questions_snapshot"]
+
+        breakdown = []
+        correct_count = 0
+
+        for question in questions_snapshot:
+            question_id = question["question_id"]
+            selected_index = saved_answers.get(question_id)
+            correct_index = question["correct_answer_index"]
+            is_correct = selected_index == correct_index
+
+            if is_correct:
+                correct_count += 1
+
+            breakdown.append(
+                {
+                    "question_id": question_id,
+                    "question_text": question["question_text"],
+                    "selected_answer_index": selected_index,
+                    "correct_answer_index": correct_index,
+                    "is_correct": is_correct,
+                }
+            )
+
+        total_questions = len(questions_snapshot)
+        percentage = (
+            round((correct_count / total_questions) * 100, 2)
+            if total_questions > 0
+            else 0.0
+        )
+
+        quiz = await get_quiz_by_id(attempt["quiz_id"])
+        pass_percentage = quiz.get("pass_percentage", 40.0) if quiz else 40.0
+        passed = percentage >= pass_percentage
+
+        submission_data = {
+            "status": "submitted",
+            "submitted_at": datetime.now(timezone.utc),
+            "total_questions": total_questions,
+            "correct_answers": correct_count,
+            "percentage": percentage,
+            "passed": passed,
+        }
+
+        updated = await submit_attempt(attempt_id, submission_data)
+        logger.info(
+            "Attempt submitted with id=%s by student=%s, score=%s/%s (%s%%), passed=%s",
+            attempt_id, student_id, correct_count, total_questions, percentage, passed,
+        )
+
+        result = AttemptResultResponse(
+            id=str(updated["_id"]),
+            quiz_id=updated["quiz_id"],
+            attempt_number=updated["attempt_number"],
+            status=updated["status"],
+            started_at=updated["started_at"],
+            submitted_at=updated["submitted_at"],
+            total_questions=updated["total_questions"],
+            correct_answers=updated["correct_answers"],
+            percentage=updated["percentage"],
+            passed=updated["passed"],
+            answer_breakdown=[AnswerBreakdownItem(**item) for item in breakdown],
+        )
         return result
