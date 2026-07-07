@@ -54,6 +54,41 @@ async def create_attempt(attempt: AttemptModel) -> dict:
     created_attempt = await attempt_collection.find_one({"_id": result.inserted_id})
     return created_attempt
 
+async def save_answer(attempt_id: str, question_id: str, answer_index: int) -> dict | None:
+    """
+    Save or update a single answer within an attempt's answers map.
+
+    Returns the updated attempt document, or None if the ID is invalid.
+    """
+    updated_attempt = None
+
+    try:
+        obj_id = ObjectId(attempt_id)
+        await attempt_collection.update_one(
+            {"_id": obj_id},
+            {"$set": {f"answers.{question_id}": answer_index}},
+        )
+        updated_attempt = await attempt_collection.find_one({"_id": obj_id})
+    except InvalidId:
+        updated_attempt = None
+
+    return updated_attempt
+
+
+async def mark_attempt_expired(attempt_id: str) -> None:
+    """
+    Mark an attempt's status as expired.
+    """
+    try:
+        obj_id = ObjectId(attempt_id)
+        await attempt_collection.update_one(
+            {"_id": obj_id},
+            {"$set": {"status": "expired"}},
+        )
+    except InvalidId:
+        pass
+
+
 
 def serialize_attempt(attempt: dict) -> dict:
     """
@@ -82,5 +117,6 @@ def serialize_attempt(attempt: dict) -> dict:
         "started_at": attempt["started_at"],
         "expires_at": attempt["expires_at"],
         "questions": questions,
+        "answers": attempt.get("answers", {}),
     }
     return serialized

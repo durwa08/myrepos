@@ -5,7 +5,7 @@ Request and response schemas for quiz attempt APIs.
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class QuestionSnapshotResponse(BaseModel):
@@ -23,6 +23,14 @@ class QuestionSnapshotResponse(BaseModel):
     difficulty: str
     tags: list[str]
 
+class AnswerSaveRequest(BaseModel):
+    """
+    Request model for saving a single answer mid-attempt.
+    """
+
+    question_id: str
+    answer_index: int = Field(ge=0)    
+
 
 class AttemptResponse(BaseModel):
     """
@@ -39,6 +47,7 @@ class AttemptResponse(BaseModel):
     started_at: datetime
     expires_at: datetime
     questions: list[QuestionSnapshotResponse]
+    answers: dict[str, int] = Field(default_factory=dict)
 
     class Config:
         """Pydantic configuration for datetime JSON serialization."""

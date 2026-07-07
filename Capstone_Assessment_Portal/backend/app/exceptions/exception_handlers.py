@@ -21,6 +21,8 @@ from app.constants import (
     QUIZ_NOT_FOUND_MESSAGE,
     USER_ALREADY_EXISTS_MESSAGE,
     USER_NOT_FOUND_MESSAGE,
+    ATTEMPT_ACCESS_DENIED_MESSAGE,
+    ATTEMPT_EXPIRED_MESSAGE,
 )
 
 from app.exceptions.custom_exceptions import (
@@ -36,6 +38,9 @@ from app.exceptions.custom_exceptions import (
     QuizNotFoundException,
     UserAlreadyExistsException,
     UserNotFoundException,
+    AttemptAccessDeniedException,
+    AttemptExpiredException,
+    InvalidAttemptAnswerException,
 )
 
 
@@ -134,6 +139,29 @@ async def max_attempts_reached_handler(request: Request, exc: MaxAttemptsReached
         content={"detail": MAX_ATTEMPTS_REACHED_MESSAGE},
     )
 
+async def attempt_expired_handler(request: Request, exc: AttemptExpiredException):
+    """Handle access to an attempt whose time limit has passed."""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": ATTEMPT_EXPIRED_MESSAGE},
+    )
+
+
+async def attempt_access_denied_handler(request: Request, exc: AttemptAccessDeniedException):
+    """Handle access to an attempt that doesn't belong to the requester."""
+    return JSONResponse(
+        status_code=403,
+        content={"detail": ATTEMPT_ACCESS_DENIED_MESSAGE},
+    )
+
+
+async def invalid_attempt_answer_handler(request: Request, exc: InvalidAttemptAnswerException):
+    """Handle answers that reference an invalid question or option index."""
+    return JSONResponse(
+        status_code=400,
+        content={"detail": exc.detail},
+    )
+
 
 def register_exception_handlers(app: FastAPI) -> None:
     """
@@ -154,3 +182,6 @@ def register_exception_handlers(app: FastAPI) -> None:
     app.add_exception_handler(QuestionAlreadyExistsException, question_already_exists_handler)
     app.add_exception_handler(AttemptNotFoundException, attempt_not_found_handler)
     app.add_exception_handler(MaxAttemptsReachedException, max_attempts_reached_handler)
+    app.add_exception_handler(AttemptExpiredException, attempt_expired_handler)
+    app.add_exception_handler(AttemptAccessDeniedException, attempt_access_denied_handler)
+    app.add_exception_handler(InvalidAttemptAnswerException, invalid_attempt_answer_handler)

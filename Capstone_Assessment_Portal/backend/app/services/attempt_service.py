@@ -1,16 +1,25 @@
 """
 Service layer for quiz attempt management.
 
-Contains the business logic for starting a quiz attempt, including
-enforcing the maximum attempts limit and locking a snapshot of the
-quiz's questions at the moment the attempt begins.
+Contains the business logic for starting a quiz attempt, saving
+partial answers, and resuming an in-progress attempt.
 """
 
 import logging
 from datetime import datetime, timedelta, timezone
 
-from app.constants import MAX_ATTEMPTS_ALLOWED
+from app.constants import (
+    ATTEMPT_ACCESS_DENIED_MESSAGE,
+    ATTEMPT_EXPIRED_MESSAGE,
+    INVALID_ANSWER_INDEX_MESSAGE,
+    INVALID_QUESTION_FOR_ATTEMPT_MESSAGE,
+    MAX_ATTEMPTS_ALLOWED,
+)
 from app.exceptions.custom_exceptions import (
+    AttemptAccessDeniedException,
+    AttemptExpiredException,
+    AttemptNotFoundException,
+    InvalidAttemptAnswerException,
     MaxAttemptsReachedException,
     QuizNotFoundException,
 )
@@ -18,11 +27,14 @@ from app.models.attempt_model import AttemptModel
 from app.repositories.attempt_repository import (
     count_attempts_by_student_and_quiz,
     create_attempt,
+    get_attempt_by_id,
+    mark_attempt_expired,
+    save_answer,
     serialize_attempt,
 )
 from app.repositories.question_repository import list_questions_by_quiz
 from app.repositories.quiz_repository import get_quiz_by_id
-from app.schemas.attempt_schema import AttemptResponse
+from app.schemas.attempt_schema import AnswerSaveRequest, AttemptResponse
 
 logger = logging.getLogger(__name__)
 
@@ -82,4 +94,77 @@ class AttemptService:
         )
 
         result = AttemptResponse(**serialize_attempt(created))
+        return result
+
+    async def _get_valid_attempt(self, attempt_id: str, student_id: str) -> dict:
+        """
+        Fetch an attempt, verify ownership, and check it hasn't expired.
+
+        Automatically marks the attempt as expired in the database if
+        its time limit has passed but it hasn't been flagged yet.
+        Returns the raw attempt document for further processing.
+        """
+        attempt = await get_attempt_by_id(attempt_id)
+        if attempt is None:
+            raise AttemptNotFoundException()
+
+        if attempt["student_id"] != student_id:
+            raise AttemptAccessDeniedException()
+
+        now = datetime.now(timezone.utc)
+        expires_at = attempt["expires_at"]
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+        if attempt["status"] == "expired" or now > expires_at:
+            if attempt["status"] != "expired":
+                await mark_attempt_expired(attempt_id)
+            raise AttemptExpiredException()
+
+        return attempt
+
+    async def resume_attempt(self, attempt_id: str, student_id: str) -> AttemptResponse:
+        """
+        Resume an in-progress attempt, returning its current state
+        including any previously saved answers.
+        """
+        attempt = await self._get_valid_attempt(attempt_id, student_id)
+        result = AttemptResponse(**serialize_attempt(attempt))
+        return result
+
+    async def save_answer(
+        self,
+        attempt_id: str,
+        request: AnswerSaveRequest,
+        student_id: str,
+    ) -> AttemptResponse:
+        """
+        Save a single answer for a question within an in-progress attempt.
+
+        Validates that the question belongs to this attempt's locked
+        snapshot and that the answer index is within range for that
+        question's options.
+        """
+        attempt = await self._get_valid_attempt(attempt_id, student_id)
+
+        snapshot_question = next(
+            (
+                q for q in attempt["questions_snapshot"]
+                if q["question_id"] == request.question_id
+            ),
+            None,
+        )
+        if snapshot_question is None:
+            raise InvalidAttemptAnswerException(INVALID_QUESTION_FOR_ATTEMPT_MESSAGE)
+
+        if not 0 <= request.answer_index < len(snapshot_question["options"]):
+            raise InvalidAttemptAnswerException(INVALID_ANSWER_INDEX_MESSAGE)
+
+        updated = await save_answer(attempt_id, request.question_id, request.answer_index)
+        logger.info(
+            "Answer saved for attempt=%s question=%s by student=%s",
+            attempt_id, request.question_id, student_id,
+        )
+
+        result = AttemptResponse(**serialize_attempt(updated))
         return result
