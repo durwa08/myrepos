@@ -6,7 +6,7 @@ import StudentDashboard from "./pages/StudentDashboard";
 import Categories from "./pages/Categories";
 import Quizzes from "./pages/Quizzes";
 import Questions from "./pages/Questions";
-import ResultsDashboard from "./pages/ResultsDashboard"; // Imported New Component
+import ResultsDashboard from "./pages/ResultsDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {

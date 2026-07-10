@@ -3,6 +3,8 @@ import AdminLayout from "../layouts/AdminLayout";
 import "../styles/adminDashboard.css";
 
 import { getCategories } from "../services/categoryService";
+import { getQuizzes } from "../services/quizService";
+import { getQuestions } from "../services/questionService";
 
 import {
   FaFolderOpen,
@@ -15,12 +17,21 @@ import StatCard from "../components/common/StatCard";
 
 function AdminDashboard() {
   const [categoryCount, setCategoryCount] = useState(0);
+  const [quizCount, setQuizCount] = useState(0);
+  const [questionCount, setQuestionCount] = useState(0);
 
   useEffect(() => {
     const fetchDashboard = async () => {
       try {
-        const categories = await getCategories();
+        const [categories, quizzes, questions] = await Promise.all([
+          getCategories(),
+          getQuizzes(),
+          getQuestions(),
+        ]);
+
         setCategoryCount(categories.length);
+        setQuizCount(quizzes.length);
+        setQuestionCount(questions.length);
       } catch (error) {
         console.error("Dashboard Error:", error);
       }
@@ -43,13 +54,13 @@ function AdminDashboard() {
 
           <StatCard
             title="Quizzes"
-            value={0}
+            value={quizCount}
             icon={<FaClipboardList />}
           />
 
           <StatCard
             title="Questions"
-            value={0}
+            value={questionCount}
             icon={<FaQuestionCircle />}
           />
 
