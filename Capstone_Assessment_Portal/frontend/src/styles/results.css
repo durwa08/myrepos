@@ -1,0 +1,76 @@
+.results-page {
+  padding: 20px;
+}
+
+.results-header {
+  margin-bottom: 24px;
+}
+
+.results-header h1 {
+  font-size: 28px;
+  color: #111827;
+  margin-bottom: 4px;
+}
+
+.results-header p {
+  color: #6b7280;
+  font-size: 15px;
+}
+
+.table-container {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.results-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 15px;
+}
+
+.results-table th {
+  background: #2563eb;
+  color: white;
+  padding: 14px 18px;
+  font-weight: 600;
+}
+
+.results-table td {
+  padding: 16px 18px;
+  border-bottom: 1px solid #f3f4f6;
+  color: #374151;
+}
+
+.results-table tr:hover {
+  background-color: #f9fafb;
+}
+
+.font-semibold {
+  font-weight: 600;
+}
+
+/* Status Badges for pass/fail thresholds */
+.status-badge {
+  display: inline-block;
+  padding: 4px 12px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-align: center;
+}
+
+.status-badge.pass {
+  background-color: #d1fae5;
+  color: #065f46;
+  border: 1px solid #10b981;
+}
+
+.status-badge.fail {
+  background-color: #fee2e2;
+  color: #991b1b;
+  border: 1px solid #ef4444;
+}

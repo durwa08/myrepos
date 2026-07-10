@@ -13,6 +13,17 @@ import { getCategories, createCategory } from "../services/categoryService";
 
 import "../styles/quiz.css";
 
+const DURATION_PRESETS = ["10", "15", "20", "30", "45", "60", "90", "120"];
+const PASS_PRESETS = ["20", "30", "35", "40", "50", "60", "70", "80"];
+
+const EMPTY_FORM = {
+  title: "",
+  description: "",
+  category_id: "",
+  time_limit_minutes: "",
+  pass_percentage: 40,
+};
+
 function Quizzes() {
   const [quizzes, setQuizzes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -30,13 +41,21 @@ function Quizzes() {
   const [showNewCategoryInput, setShowNewCategoryInput] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
 
-  const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    category_id: "",
-    time_limit_minutes: "",
-    pass_percentage: 40,
-  });
+  const [showCustomDuration, setShowCustomDuration] = useState(false);
+  const [showCustomPass, setShowCustomPass] = useState(false);
+
+  const [formData, setFormData] = useState(EMPTY_FORM);
+
+  const [fieldErrors, setFieldErrors] = useState({ title: "", duration: "" });
+
+  const resetFormState = () => {
+    setFormData(EMPTY_FORM);
+    setShowNewCategoryInput(false);
+    setNewCategoryName("");
+    setShowCustomDuration(false);
+    setShowCustomPass(false);
+    setFieldErrors({ title: "", duration: "" });
+  };
 
   const fetchQuizzes = async () => {
     try {
@@ -66,7 +85,17 @@ function Quizzes() {
   };
 
   const handleInputChange = (e) => {
-    if (e.target.name === "category_id" && e.target.value === "__new__") {
+    const { name, value } = e.target;
+
+    if (name === "title" && fieldErrors.title) {
+      setFieldErrors({ ...fieldErrors, title: "" });
+    }
+
+    if (name === "time_limit_minutes" && fieldErrors.duration) {
+      setFieldErrors({ ...fieldErrors, duration: "" });
+    }
+
+    if (name === "category_id" && value === "__new__") {
       setShowNewCategoryInput(true);
       setFormData({
         ...formData,
@@ -75,9 +104,27 @@ function Quizzes() {
       return;
     }
 
+    if (name === "time_limit_minutes" && value === "__custom__") {
+      setShowCustomDuration(true);
+      setFormData({
+        ...formData,
+        time_limit_minutes: "",
+      });
+      return;
+    }
+
+    if (name === "pass_percentage" && value === "__custom__") {
+      setShowCustomPass(true);
+      setFormData({
+        ...formData,
+        pass_percentage: "",
+      });
+      return;
+    }
+
     setFormData({
       ...formData,
-      [e.target.name]: e.target.value,
+      [name]: value,
     });
   };
 
@@ -119,6 +166,19 @@ function Quizzes() {
       pass_percentage: quiz.pass_percentage,
     });
 
+    setShowNewCategoryInput(false);
+    setNewCategoryName("");
+
+    // If the saved value isn't one of the presets, drop straight into
+    // custom-input mode so editing doesn't silently blank the value.
+    setShowCustomDuration(
+      !DURATION_PRESETS.includes(String(quiz.time_limit_minutes))
+    );
+    setShowCustomPass(
+      !PASS_PRESETS.includes(String(quiz.pass_percentage))
+    );
+
+    setFieldErrors({ title: "", duration: "" });
     setShowModal(true);
     setError("");
   };
@@ -129,33 +189,62 @@ function Quizzes() {
   };
 
   const handleSaveQuiz = async () => {
+    const newFieldErrors = { title: "", duration: "" };
+    let hasFieldError = false;
+
+    if (!formData.title || !formData.title.trim()) {
+      newFieldErrors.title = "You have to add a valid name for the quiz.";
+      hasFieldError = true;
+    }
+
+    const duration = Number(formData.time_limit_minutes);
+    if (!formData.time_limit_minutes || !duration || duration <= 0) {
+      newFieldErrors.duration = "Please set the time.";
+      hasFieldError = true;
+    }
+
+    if (hasFieldError) {
+      setFieldErrors(newFieldErrors);
+      return;
+    }
+
+    setFieldErrors({ title: "", duration: "" });
+
+    if (!formData.category_id) {
+      setError("Please select a category.");
+      return;
+    }
+
+    const passPercentage = Number(formData.pass_percentage);
     if (
-      !formData.title ||
-      !formData.category_id ||
-      !formData.time_limit_minutes
+      formData.pass_percentage === "" ||
+      Number.isNaN(passPercentage) ||
+      passPercentage < 1 ||
+      passPercentage > 100
     ) {
-      setError("Please fill all required fields.");
+      setError("Pass percentage must be between 1 and 100.");
       return;
     }
 
     try {
+      const payload = {
+        ...formData,
+        title: formData.title.trim(),
+        time_limit_minutes: duration,
+        pass_percentage: passPercentage,
+      };
+
       if (editingQuiz) {
-        await updateQuiz(editingQuiz.id, formData);
+        await updateQuiz(editingQuiz.id, payload);
       } else {
-        await createQuiz(formData);
+        await createQuiz(payload);
       }
 
       setShowModal(false);
 
       setEditingQuiz(null);
 
-      setFormData({
-        title: "",
-        description: "",
-        category_id: "",
-        time_limit_minutes: "",
-        pass_percentage: 40,
-      });
+      resetFormState();
 
       await fetchQuizzes();
     } catch (error) {
@@ -202,13 +291,7 @@ function Quizzes() {
             onClick={() => {
               setEditingQuiz(null);
 
-              setFormData({
-                title: "",
-                description: "",
-                category_id: "",
-                time_limit_minutes: "",
-                pass_percentage: 40,
-              });
+              resetFormState();
 
               setError("");
               setShowModal(true);
@@ -228,6 +311,9 @@ function Quizzes() {
               </h2>
 
               <label className="field-label">Quiz Title</label>
+              {fieldErrors.title && (
+                <p className="error-message">{fieldErrors.title}</p>
+              )}
               <input
                 type="text"
                 name="title"
@@ -298,38 +384,103 @@ function Quizzes() {
               )}
 
               <label className="field-label">Duration (Minutes)</label>
-              <select
-                name="time_limit_minutes"
-                value={formData.time_limit_minutes}
-                onChange={handleInputChange}
-              >
-                <option value="">Select Duration</option>
-                <option value="10">10 minutes</option>
-                <option value="15">15 minutes</option>
-                <option value="20">20 minutes</option>
-                <option value="30">30 minutes</option>
-                <option value="45">45 minutes</option>
-                <option value="60">60 minutes</option>
-                <option value="90">90 minutes</option>
-                <option value="120">120 minutes</option>
-              </select>
+              {showCustomDuration ? (
+                <div className="new-category-box">
+                  <input
+                    type="number"
+                    min="1"
+                    placeholder="Enter duration in minutes"
+                    value={formData.time_limit_minutes}
+                    onChange={(e) => {
+                      setFormData({
+                        ...formData,
+                        time_limit_minutes: e.target.value,
+                      });
+                      if (fieldErrors.duration) {
+                        setFieldErrors({ ...fieldErrors, duration: "" });
+                      }
+                    }}
+                  />
+
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => {
+                      setShowCustomDuration(false);
+                      setFormData({ ...formData, time_limit_minutes: "" });
+                    }}
+                  >
+                    Use preset
+                  </button>
+                </div>
+              ) : (
+                <select
+                  name="time_limit_minutes"
+                  value={formData.time_limit_minutes}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select Duration</option>
+                  <option value="10">10 minutes</option>
+                  <option value="15">15 minutes</option>
+                  <option value="20">20 minutes</option>
+                  <option value="30">30 minutes</option>
+                  <option value="45">45 minutes</option>
+                  <option value="60">60 minutes</option>
+                  <option value="90">90 minutes</option>
+                  <option value="120">120 minutes</option>
+                  <option value="__custom__">+ Custom duration</option>
+                </select>
+              )}
+              {fieldErrors.duration && (
+                <p className="error-message">{fieldErrors.duration}</p>
+              )}
 
               <label className="field-label">Pass Percentage (%)</label>
-              <select
-                name="pass_percentage"
-                value={formData.pass_percentage}
-                onChange={handleInputChange}
-              >
-                <option value="">Select Pass %</option>
-                <option value="20">20%</option>
-                <option value="30">30%</option>
-                <option value="35">35%</option>
-                <option value="40">40%</option>
-                <option value="50">50%</option>
-                <option value="60">60%</option>
-                <option value="70">70%</option>
-                <option value="80">80%</option>
-              </select>
+              {showCustomPass ? (
+                <div className="new-category-box">
+                  <input
+                    type="number"
+                    min="1"
+                    max="100"
+                    placeholder="Enter pass percentage"
+                    value={formData.pass_percentage}
+                    onChange={(e) =>
+                      setFormData({
+                        ...formData,
+                        pass_percentage: e.target.value,
+                      })
+                    }
+                  />
+
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => {
+                      setShowCustomPass(false);
+                      setFormData({ ...formData, pass_percentage: "" });
+                    }}
+                  >
+                    Use preset
+                  </button>
+                </div>
+              ) : (
+                <select
+                  name="pass_percentage"
+                  value={formData.pass_percentage}
+                  onChange={handleInputChange}
+                >
+                  <option value="">Select Pass %</option>
+                  <option value="20">20%</option>
+                  <option value="30">30%</option>
+                  <option value="35">35%</option>
+                  <option value="40">40%</option>
+                  <option value="50">50%</option>
+                  <option value="60">60%</option>
+                  <option value="70">70%</option>
+                  <option value="80">80%</option>
+                  <option value="__custom__">+ Custom %</option>
+                </select>
+              )}
 
               {error && (
                 <p className="error-message">
@@ -351,6 +502,7 @@ function Quizzes() {
                     setShowModal(false);
                     setEditingQuiz(null);
                     setError("");
+                    setFieldErrors({ title: "", duration: "" });
                   }}
                 >
                   Cancel

@@ -5,6 +5,8 @@ import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import Categories from "./pages/Categories";
 import Quizzes from "./pages/Quizzes";
+import Questions from "./pages/Questions";
+import ResultsDashboard from "./pages/ResultsDashboard"; // Imported New Component
 import ProtectedRoute from "./routes/ProtectedRoute";
 
 function App() {
@@ -50,6 +52,25 @@ function App() {
           element={
             <ProtectedRoute role="admin">
               <Quizzes />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/admin/questions"
+          element={
+            <ProtectedRoute role="admin">
+              <Questions />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Results Dashboard - Added New Protected Route */}
+        <Route
+          path="/admin/results"
+          element={
+            <ProtectedRoute role="admin">
+              <ResultsDashboard />
             </ProtectedRoute>
           }
         />

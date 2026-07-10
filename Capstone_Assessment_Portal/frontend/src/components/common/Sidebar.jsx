@@ -6,7 +6,6 @@ import {
   FaChartBar,
 } from "react-icons/fa";
 
-
 import { NavLink } from "react-router-dom";
 import "../../styles/sidebar.css";
 
@@ -30,7 +29,6 @@ function Sidebar() {
         </div>
 
         <nav>
-
           <NavLink
             to="/admin"
             end
@@ -91,7 +89,6 @@ function Sidebar() {
             </span>
             Results
           </NavLink>
-
         </nav>
       </div>
 

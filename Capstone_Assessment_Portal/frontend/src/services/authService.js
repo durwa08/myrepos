@@ -11,6 +11,9 @@ export const registerUser = async (data) => {
 };
 
 export const checkEmail = async (email) => {
-  const response = await api.get(`/auth/check-email/${email}`);
+  const response = await api.get("/auth/check-email", {
+    params: { email },
+  });
+
   return response.data;
 };
