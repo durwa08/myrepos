@@ -36,6 +36,18 @@ async def create_question(
     )
     return result
 
+@router.get("", response_model=list[QuestionPublicResponse])
+async def get_all_questions(
+    current_user: dict = Depends(get_current_user),
+):
+    """
+    Retrieve all questions.
+
+    Accessible to any authenticated user.
+    Correct answers are hidden.
+    """
+    result = await question_service.get_all_questions()
+    return result
 
 @router.get("/quiz/{quiz_id}", response_model=list[QuestionPublicResponse])
 async def get_questions_by_quiz(

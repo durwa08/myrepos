@@ -17,7 +17,10 @@ database = get_database()
 question_collection = database["questions"]
 
 
-async def get_question_by_text_and_quiz(question_text: str, quiz_id: str) -> dict | None:
+async def get_question_by_text_and_quiz(
+    question_text: str,
+    quiz_id: str,
+) -> dict | None:
     """
     Retrieve a question by its text within a specific quiz.
 
@@ -60,7 +63,9 @@ async def create_question(question: QuestionModel) -> dict:
     except DuplicateKeyError as exc:
         raise QuestionAlreadyExistsException() from exc
 
-    created_question = await question_collection.find_one({"_id": result.inserted_id})
+    created_question = await question_collection.find_one(
+        {"_id": result.inserted_id}
+    )
     return created_question
 
 
@@ -76,8 +81,13 @@ async def update_question(question_id: str, update_data: dict) -> dict | None:
 
     try:
         obj_id = ObjectId(question_id)
-        await question_collection.update_one({"_id": obj_id}, {"$set": update_data})
-        updated_question = await question_collection.find_one({"_id": obj_id})
+        await question_collection.update_one(
+            {"_id": obj_id},
+            {"$set": update_data},
+        )
+        updated_question = await question_collection.find_one(
+            {"_id": obj_id}
+        )
     except InvalidId:
         updated_question = None
     except DuplicateKeyError as exc:
@@ -102,6 +112,18 @@ async def delete_question(question_id: str) -> bool:
         deleted = False
 
     return deleted
+
+
+async def list_all_questions() -> list[dict]:
+    """
+    Retrieve all questions.
+    """
+    questions = []
+
+    async for question in question_collection.find():
+        questions.append(question)
+
+    return questions
 
 
 async def list_questions_by_quiz(quiz_id: str) -> list[dict]:
@@ -131,4 +153,5 @@ def serialize_question(question: dict) -> dict:
         "tags": question.get("tags", []),
         "created_by": question["created_by"],
     }
+
     return serialized
