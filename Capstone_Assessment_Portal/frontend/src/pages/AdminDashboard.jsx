@@ -1,5 +1,8 @@
+import { useEffect, useState } from "react";
 import AdminLayout from "../layouts/AdminLayout";
 import "../styles/adminDashboard.css";
+
+import { getCategories } from "../services/categoryService";
 
 import {
   FaFolderOpen,
@@ -11,16 +14,30 @@ import {
 import StatCard from "../components/common/StatCard";
 
 function AdminDashboard() {
+  const [categoryCount, setCategoryCount] = useState(0);
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const categories = await getCategories();
+        setCategoryCount(categories.length);
+      } catch (error) {
+        console.error("Dashboard Error:", error);
+      }
+    };
+
+    fetchDashboard();
+  }, []);
+
   return (
     <AdminLayout>
       <div className="dashboard">
         <h1>Dashboard</h1>
 
         <div className="cards">
-
           <StatCard
             title="Categories"
-            value={0}
+            value={categoryCount}
             icon={<FaFolderOpen />}
           />
 
@@ -41,7 +58,6 @@ function AdminDashboard() {
             value={0}
             icon={<FaChartBar />}
           />
-
         </div>
       </div>
     </AdminLayout>

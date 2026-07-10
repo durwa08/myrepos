@@ -6,85 +6,98 @@ import {
   FaChartBar,
 } from "react-icons/fa";
 
+
+import { NavLink } from "react-router-dom";
 import "../../styles/sidebar.css";
 
-function Sidebar({ activeMenu, setActiveMenu }) {
-  const menus = [
-    {
-      id: "dashboard",
-      title: "Dashboard",
-      icon: <FaChartPie />,
-    },
-    {
-      id: "categories",
-      title: "Categories",
-      icon: <FaFolderOpen />,
-    },
-    {
-      id: "quizzes",
-      title: "Quizzes",
-      icon: <FaClipboardList />,
-    },
-    {
-      id: "questions",
-      title: "Questions",
-      icon: <FaQuestionCircle />,
-    },
-    {
-      id: "results",
-      title: "Results",
-      icon: <FaChartBar />,
-    },
-  ];
-
+function Sidebar() {
   return (
     <aside className="sidebar">
+      <div>
+        <div className="sidebar-logo">
+          <div className="logo-circle">
+            AP
+          </div>
 
-      <div className="sidebar-logo">
-
-        <div className="logo-circle">
-          AP
+          <div>
+            <h2>Assessment</h2>
+            <span>Admin Portal</span>
+          </div>
         </div>
 
-        <div>
-          <h2>Assessment</h2>
-          <span>Admin Portal</span>
+        <div className="menu-title">
+          MAIN MENU
         </div>
 
-      </div>
+        <nav>
 
-      <div className="menu-title">
-        MAIN MENU
-      </div>
-
-      <nav>
-
-        {menus.map((menu) => (
-
-          <button
-            key={menu.id}
-            className={
-              activeMenu === menu.id
-                ? "menu-item active"
-                : "menu-item"
+          <NavLink
+            to="/admin"
+            end
+            className={({ isActive }) =>
+              isActive ? "menu-item active" : "menu-item"
             }
-            onClick={() => setActiveMenu(menu.id)}
           >
             <span className="menu-icon">
-              {menu.icon}
+              <FaChartPie />
             </span>
+            Dashboard
+          </NavLink>
 
-            {menu.title}
-          </button>
+          <NavLink
+            to="/admin/categories"
+            className={({ isActive }) =>
+              isActive ? "menu-item active" : "menu-item"
+            }
+          >
+            <span className="menu-icon">
+              <FaFolderOpen />
+            </span>
+            Categories
+          </NavLink>
 
-        ))}
+          <NavLink
+            to="/admin/quizzes"
+            className={({ isActive }) =>
+              isActive ? "menu-item active" : "menu-item"
+            }
+          >
+            <span className="menu-icon">
+              <FaClipboardList />
+            </span>
+            Quizzes
+          </NavLink>
 
-      </nav>
+          <NavLink
+            to="/admin/questions"
+            className={({ isActive }) =>
+              isActive ? "menu-item active" : "menu-item"
+            }
+          >
+            <span className="menu-icon">
+              <FaQuestionCircle />
+            </span>
+            Questions
+          </NavLink>
+
+          <NavLink
+            to="/admin/results"
+            className={({ isActive }) =>
+              isActive ? "menu-item active" : "menu-item"
+            }
+          >
+            <span className="menu-icon">
+              <FaChartBar />
+            </span>
+            Results
+          </NavLink>
+
+        </nav>
+      </div>
 
       <div className="sidebar-footer">
         Version 1.0
       </div>
-
     </aside>
   );
 }
