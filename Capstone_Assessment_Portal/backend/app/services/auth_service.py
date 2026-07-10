@@ -32,12 +32,9 @@ class AuthService:
     async def register_user(self, request: UserRegisterRequest) -> UserResponse:
         """
         Register a new user after validating that the email is unique.
-
-        The password is hashed before storing. Every user registered
-        through this endpoint is created with the student role — admin
-        accounts are created separately via a standalone seed script.
         """
         existing_user = await get_user_by_email(request.email)
+
         if existing_user is not None:
             raise UserAlreadyExistsException()
 
@@ -49,25 +46,40 @@ class AuthService:
             hashed_password=hashed,
             role=STUDENT_ROLE,
         )
+
         created_user = await create_user(new_user)
 
         return UserResponse(**serialize_user(created_user))
 
+
+    async def check_email(self, email: str) -> dict:
+        """
+        Check whether an email is already registered.
+        """
+        user = await get_user_by_email(email)
+
+        return {
+            "exists": user is not None
+        }
+
+
     async def login_user(self, request: LoginRequest) -> TokenResponse:
         """
         Authenticate a user and return access and refresh tokens.
-
-        Returns the same error message for invalid email and password
-        to avoid revealing whether an email is registered.
         """
         user = await get_user_by_email(request.email)
+
         if user is None:
             raise InvalidCredentialsException()
 
         if not verify_password(request.password, user["hashed_password"]):
             raise InvalidCredentialsException()
 
-        token_data = {"sub": user["email"], "role": user["role"]}
+        token_data = {
+            "sub": user["email"],
+            "role": user["role"]
+        }
+
         access_token = create_access_token(data=token_data)
         refresh_token = create_refresh_token(data=token_data)
 
@@ -78,21 +90,23 @@ class AuthService:
             role=user["role"],
         )
 
+
     async def refresh_access_token(self, refresh_token: str) -> RefreshResponse:
         """
-        Validate the refresh token and issue a new access token.
-
-        Verifies that the user still exists before generating
-        a new access token.
+        Validate refresh token and generate a new access token.
         """
         payload = decode_refresh_token(refresh_token)
 
         user = await get_user_by_email(payload["sub"])
+
         if user is None:
             raise UserNotFoundException()
 
         new_access_token = create_access_token(
-            data={"sub": user["email"], "role": user["role"]}
+            data={
+                "sub": user["email"],
+                "role": user["role"]
+            }
         )
 
         return RefreshResponse(
