@@ -48,12 +48,11 @@ async def create_quiz(quiz: QuizModel) -> dict:
     """
     Create a new quiz and return the saved document.
     """
-    quiz_dict = quiz.model_dump(by_alias=True, exclude={"id"})
+    quiz_dict = quiz.model_dump()
     result = await quiz_collection.insert_one(quiz_dict)
 
     created_quiz = await quiz_collection.find_one({"_id": result.inserted_id})
     return created_quiz
-
 
 async def update_quiz(quiz_id: str, update_data: dict) -> dict | None:
     """
@@ -114,6 +113,7 @@ def serialize_quiz(quiz: dict) -> dict:
         "description": quiz.get("description"),
         "category_id": quiz["category_id"],
         "time_limit_minutes": quiz["time_limit_minutes"],
+        "pass_percentage": quiz.get("pass_percentage", 40.0),
         "created_by": quiz["created_by"],
     }
     return serialized

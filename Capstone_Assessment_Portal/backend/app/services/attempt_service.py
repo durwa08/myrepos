@@ -1,29 +1,48 @@
 """
 Service layer for quiz attempt management.
 
-Contains the business logic for starting a quiz attempt, including
-enforcing the maximum attempts limit and locking a snapshot of the
-quiz's questions at the moment the attempt begins.
+Contains the business logic for starting a quiz attempt, saving
+partial answers, and resuming an in-progress attempt.
 """
 
 import logging
 from datetime import datetime, timedelta, timezone
 
-from app.constants import MAX_ATTEMPTS_ALLOWED
+from app.constants import (
+    ATTEMPT_ACCESS_DENIED_MESSAGE,
+    ATTEMPT_EXPIRED_MESSAGE,
+    INVALID_ANSWER_INDEX_MESSAGE,
+    INVALID_QUESTION_FOR_ATTEMPT_MESSAGE,
+    MAX_ATTEMPTS_ALLOWED,
+)
 from app.exceptions.custom_exceptions import (
+    AttemptAccessDeniedException,
+    AttemptAlreadySubmittedException,
+    AttemptExpiredException,
+    AttemptNotFoundException,
+    InvalidAttemptAnswerException,
     MaxAttemptsReachedException,
     QuizNotFoundException,
 )
 from app.models.attempt_model import AttemptModel
 from app.repositories.attempt_repository import (
-    count_attempts_by_student_and_quiz,
+   count_attempts_by_student_and_quiz,
     create_attempt,
+    get_active_attempt,
+    get_attempt_by_id,
+    mark_attempt_expired,
+    save_answer,
     serialize_attempt,
+    submit_attempt,
 )
 from app.repositories.question_repository import list_questions_by_quiz
 from app.repositories.quiz_repository import get_quiz_by_id
-from app.schemas.attempt_schema import AttemptResponse
-
+from app.schemas.attempt_schema import (
+    AnswerBreakdownItem,
+    AnswerSaveRequest,
+    AttemptResponse,
+    AttemptResultResponse,
+)
 logger = logging.getLogger(__name__)
 
 
@@ -34,14 +53,32 @@ class AttemptService:
         """
         Start a new quiz attempt for a student.
 
-        Validates the quiz exists, enforces the maximum attempts limit,
-        and locks a snapshot of the quiz's current questions (including
-        correct answers) so later question edits cannot affect this
-        attempt's grading.
+        If the student already has an unexpired, in-progress attempt
+        for this quiz, that attempt is returned as-is instead of
+        creating a new one. If an in-progress attempt has passed its
+        time limit, it is marked expired before proceeding.
+
+        Otherwise, validates the quiz exists, enforces the maximum
+        attempts limit, and locks a snapshot of the quiz's current
+        questions (including correct answers) so later question edits
+        cannot affect this attempt's grading.
         """
         quiz = await get_quiz_by_id(quiz_id)
         if quiz is None:
             raise QuizNotFoundException()
+
+        active_attempt = await get_active_attempt(student_id, quiz_id)
+        if active_attempt is not None:
+            now = datetime.now(timezone.utc)
+            expires_at = active_attempt["expires_at"]
+            if expires_at.tzinfo is None:
+                expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+            if now <= expires_at:
+                result = AttemptResponse(**serialize_attempt(active_attempt))
+                return result
+
+            await mark_attempt_expired(str(active_attempt["_id"]))
 
         existing_attempts = await count_attempts_by_student_and_quiz(
             student_id, quiz_id
@@ -82,4 +119,164 @@ class AttemptService:
         )
 
         result = AttemptResponse(**serialize_attempt(created))
+        return result
+    
+
+
+    async def _get_valid_attempt(self, attempt_id: str, student_id: str) -> dict:
+        """
+        Fetch an attempt, verify ownership, and check it hasn't expired.
+
+        Automatically marks the attempt as expired in the database if
+        its time limit has passed but it hasn't been flagged yet.
+        Returns the raw attempt document for further processing.
+        """
+        attempt = await get_attempt_by_id(attempt_id)
+        if attempt is None:
+            raise AttemptNotFoundException()
+
+        if attempt["student_id"] != student_id:
+            raise AttemptAccessDeniedException()
+
+        now = datetime.now(timezone.utc)
+        expires_at = attempt["expires_at"]
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+        if attempt["status"] == "expired" or now > expires_at:
+            if attempt["status"] != "expired":
+                await mark_attempt_expired(attempt_id)
+            raise AttemptExpiredException()
+
+        return attempt
+
+    async def resume_attempt(self, attempt_id: str, student_id: str) -> AttemptResponse:
+        """
+        Resume an in-progress attempt, returning its current state
+        including any previously saved answers.
+        """
+        attempt = await self._get_valid_attempt(attempt_id, student_id)
+        result = AttemptResponse(**serialize_attempt(attempt))
+        return result
+
+    async def save_answer(
+        self,
+        attempt_id: str,
+        request: AnswerSaveRequest,
+        student_id: str,
+    ) -> AttemptResponse:
+        """
+        Save a single answer for a question within an in-progress attempt.
+
+        Validates that the question belongs to this attempt's locked
+        snapshot and that the answer index is within range for that
+        question's options.
+        """
+        attempt = await self._get_valid_attempt(attempt_id, student_id)
+
+        snapshot_question = next(
+            (
+                q for q in attempt["questions_snapshot"]
+                if q["question_id"] == request.question_id
+            ),
+            None,
+        )
+        if snapshot_question is None:
+            raise InvalidAttemptAnswerException(INVALID_QUESTION_FOR_ATTEMPT_MESSAGE)
+
+        if not 0 <= request.answer_index < len(snapshot_question["options"]):
+            raise InvalidAttemptAnswerException(INVALID_ANSWER_INDEX_MESSAGE)
+
+        updated = await save_answer(attempt_id, request.question_id, request.answer_index)
+        logger.info(
+            "Answer saved for attempt=%s question=%s by student=%s",
+            attempt_id, request.question_id, student_id,
+        )
+
+        result = AttemptResponse(**serialize_attempt(updated))
+        return result
+    
+    async def submit_attempt(self, attempt_id: str, student_id: str) -> AttemptResultResponse:
+        """
+        Submit an attempt and compute its score.
+
+        Ownership is verified, but unlike resume/save_answer, an
+        expired attempt is still allowed to be submitted (finalizing
+        it automatically) rather than being rejected. Already-submitted
+        attempts cannot be submitted again.
+        """
+        attempt = await get_attempt_by_id(attempt_id)
+        if attempt is None:
+            raise AttemptNotFoundException()
+
+        if attempt["student_id"] != student_id:
+            raise AttemptAccessDeniedException()
+
+        if attempt["status"] == "submitted":
+            raise AttemptAlreadySubmittedException()
+
+        saved_answers = attempt.get("answers", {})
+        questions_snapshot = attempt["questions_snapshot"]
+
+        breakdown = []
+        correct_count = 0
+
+        for question in questions_snapshot:
+            question_id = question["question_id"]
+            selected_index = saved_answers.get(question_id)
+            correct_index = question["correct_answer_index"]
+            is_correct = selected_index == correct_index
+
+            if is_correct:
+                correct_count += 1
+
+            breakdown.append(
+                {
+                    "question_id": question_id,
+                    "question_text": question["question_text"],
+                    "selected_answer_index": selected_index,
+                    "correct_answer_index": correct_index,
+                    "is_correct": is_correct,
+                }
+            )
+
+        total_questions = len(questions_snapshot)
+        percentage = (
+            round((correct_count / total_questions) * 100, 2)
+            if total_questions > 0
+            else 0.0
+        )
+
+        quiz = await get_quiz_by_id(attempt["quiz_id"])
+        pass_percentage = quiz.get("pass_percentage", 40.0) if quiz else 40.0
+        passed = percentage >= pass_percentage
+
+        submission_data = {
+            "status": "submitted",
+            "submitted_at": datetime.now(timezone.utc),
+            "total_questions": total_questions,
+            "correct_answers": correct_count,
+            "percentage": percentage,
+            "passed": passed,
+        }
+
+        updated = await submit_attempt(attempt_id, submission_data)
+        logger.info(
+            "Attempt submitted with id=%s by student=%s, score=%s/%s (%s%%), passed=%s",
+            attempt_id, student_id, correct_count, total_questions, percentage, passed,
+        )
+
+        result = AttemptResultResponse(
+            id=str(updated["_id"]),
+            quiz_id=updated["quiz_id"],
+            attempt_number=updated["attempt_number"],
+            status=updated["status"],
+            started_at=updated["started_at"],
+            submitted_at=updated["submitted_at"],
+            total_questions=updated["total_questions"],
+            correct_answers=updated["correct_answers"],
+            percentage=updated["percentage"],
+            passed=updated["passed"],
+            answer_breakdown=[AnswerBreakdownItem(**item) for item in breakdown],
+        )
         return result

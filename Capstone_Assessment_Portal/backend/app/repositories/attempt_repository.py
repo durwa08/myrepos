@@ -43,6 +43,17 @@ async def get_attempt_by_id(attempt_id: str) -> dict | None:
 
     return attempt
 
+async def get_active_attempt(student_id: str, quiz_id: str) -> dict | None:
+    """
+    Retrieve a student's currently in-progress attempt for a quiz, if any.
+
+    Returns None if no in-progress attempt exists.
+    """
+    attempt = await attempt_collection.find_one(
+        {"student_id": student_id, "quiz_id": quiz_id, "status": "in_progress"}
+    )
+    return attempt
+
 
 async def create_attempt(attempt: AttemptModel) -> dict:
     """
@@ -53,6 +64,59 @@ async def create_attempt(attempt: AttemptModel) -> dict:
 
     created_attempt = await attempt_collection.find_one({"_id": result.inserted_id})
     return created_attempt
+
+async def save_answer(attempt_id: str, question_id: str, answer_index: int) -> dict | None:
+    """
+    Save or update a single answer within an attempt's answers map.
+
+    Returns the updated attempt document, or None if the ID is invalid.
+    """
+    updated_attempt = None
+
+    try:
+        obj_id = ObjectId(attempt_id)
+        await attempt_collection.update_one(
+            {"_id": obj_id},
+            {"$set": {f"answers.{question_id}": answer_index}},
+        )
+        updated_attempt = await attempt_collection.find_one({"_id": obj_id})
+    except InvalidId:
+        updated_attempt = None
+
+    return updated_attempt
+
+
+async def mark_attempt_expired(attempt_id: str) -> None:
+    """
+    Mark an attempt's status as expired.
+    """
+    try:
+        obj_id = ObjectId(attempt_id)
+        await attempt_collection.update_one(
+            {"_id": obj_id},
+            {"$set": {"status": "expired"}},
+        )
+    except InvalidId:
+        pass
+
+async def submit_attempt(attempt_id: str, submission_data: dict) -> dict | None:
+    """
+    Finalize an attempt with its computed score and breakdown.
+
+    Returns the updated attempt document, or None if the ID is invalid.
+    """
+    updated_attempt = None
+
+    try:
+        obj_id = ObjectId(attempt_id)
+        await attempt_collection.update_one(
+            {"_id": obj_id}, {"$set": submission_data}
+        )
+        updated_attempt = await attempt_collection.find_one({"_id": obj_id})
+    except InvalidId:
+        updated_attempt = None
+
+    return updated_attempt
 
 
 def serialize_attempt(attempt: dict) -> dict:
@@ -82,5 +146,6 @@ def serialize_attempt(attempt: dict) -> dict:
         "started_at": attempt["started_at"],
         "expires_at": attempt["expires_at"],
         "questions": questions,
+        "answers": attempt.get("answers", {}),
     }
     return serialized

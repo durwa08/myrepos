@@ -93,7 +93,9 @@ def test_quiz_response_schema():
         description="Covers variables, loops, and functions.",
         category_id="6a45f4149915f959917d382b",
         time_limit_minutes=30,
+        pass_percentage=40.0,
         created_by="durwapahariya08@gmail.com",
     )
     assert response.title == "Python Basics"
     assert response.time_limit_minutes == 30
+    assert response.pass_percentage == 40.0
