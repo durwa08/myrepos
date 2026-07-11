@@ -3,7 +3,6 @@ Request and response schemas for quiz attempt APIs.
 """
 
 from datetime import datetime
-from typing import Optional
 
 from pydantic import BaseModel, Field
 
@@ -58,60 +57,26 @@ class AttemptResponse(BaseModel):
         json_encoders = {datetime: lambda dt: dt.isoformat()}
 
 
-class AnswerBreakdownItem(BaseModel):
+class SubmitAttemptResponse(BaseModel):
     """
-    Per-question result shown after an attempt is submitted.
-    """
+    Response model returned immediately after submitting an attempt.
 
-    question_id: str
-    question_text: str
-    selected_answer_index: Optional[int]
-    correct_answer_index: int
-    is_correct: bool
-
-
-class AttemptResultResponse(BaseModel):
-    """
-    Response model returned after a quiz attempt is submitted.
-
-    Reveals correct answers and a per-question breakdown, since the
-    attempt is now finalized.
+    Provides the score summary at the moment of submission. For
+    viewing this result again later (with full answer breakdown),
+    use the Result module's GET /results/{attempt_id} endpoint.
     """
 
     id: str
     quiz_id: str
     attempt_number: int
     status: str
-    started_at: datetime
     submitted_at: datetime
     total_questions: int
     correct_answers: int
     percentage: float
     passed: bool
-    answer_breakdown: list[AnswerBreakdownItem]
 
     class Config:
         """Pydantic configuration for datetime JSON serialization."""
 
         json_encoders = {datetime: lambda dt: dt.isoformat()}
-
-class ResultHistoryItem(BaseModel):
-    """
-    Lightweight summary of a submitted attempt, used in history and
-    admin dashboard listings.
-    """
-
-    id: str
-    quiz_id: str
-    student_id: str
-    attempt_number: int
-    total_questions: int
-    correct_answers: int
-    percentage: float
-    passed: bool
-    submitted_at: datetime
-
-    class Config:
-        """Pydantic configuration for datetime JSON serialization."""
-
-        json_encoders = {datetime: lambda dt: dt.isoformat()}        

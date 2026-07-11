@@ -1,19 +1,18 @@
 """
 API routes for quiz attempts.
 
-Starting, resuming, saving answers, submitting, and viewing results
-for an attempt is restricted to students, since only candidates take
-quizzes in this system. The admin dashboard is restricted to admins.
+Starting, resuming, saving answers, and submitting an attempt is
+restricted to students, since only candidates take quizzes in this
+system. Viewing results has moved to the Result module.
 """
 
 from fastapi import APIRouter, Depends, status
 
-from app.middleware.auth_middleware import require_admin, require_student
+from app.middleware.auth_middleware import require_student
 from app.schemas.attempt_schema import (
     AnswerSaveRequest,
     AttemptResponse,
-    AttemptResultResponse,
-    ResultHistoryItem,
+    SubmitAttemptResponse,
 )
 from app.services.attempt_service import AttemptService
 
@@ -23,9 +22,6 @@ router = APIRouter(prefix="/attempts", tags=["Attempts"])
 def get_attempt_service() -> AttemptService:
     """
     Provide an AttemptService instance via FastAPI's dependency injection.
-
-    Allows the service to be swapped out in tests using
-    app.dependency_overrides, instead of patching the class directly.
     """
     return AttemptService()
 
@@ -53,49 +49,6 @@ async def start_attempt(
     return result
 
 
-@router.get("/history/me", response_model=list[ResultHistoryItem])
-async def get_my_history(
-    current_user: dict = Depends(require_student),
-    attempt_service: AttemptService = Depends(get_attempt_service),
-):
-    """
-    Retrieve the current student's full attempt result history.
-    """
-    result = await attempt_service.get_history(student_id=current_user["sub"])
-    return result
-
-
-@router.get("/admin/dashboard", response_model=list[ResultHistoryItem])
-async def get_admin_dashboard(
-    current_user: dict = Depends(require_admin),
-    attempt_service: AttemptService = Depends(get_attempt_service),
-):
-    """
-    Retrieve every submitted attempt result across all students.
-
-    Only administrators can access this dashboard.
-    """
-    result = await attempt_service.get_admin_dashboard()
-    return result
-
-
-@router.get("/{attempt_id}/result", response_model=AttemptResultResponse)
-async def get_attempt_result(
-    attempt_id: str,
-    current_user: dict = Depends(require_student),
-    attempt_service: AttemptService = Depends(get_attempt_service),
-):
-    """
-    View the result of a submitted attempt.
-
-    Only the student who owns the attempt can view its result.
-    """
-    result = await attempt_service.get_result(
-        attempt_id, student_id=current_user["sub"]
-    )
-    return result
-
-
 @router.patch("/{attempt_id}/answers", response_model=AttemptResponse)
 async def save_answer(
     attempt_id: str,
@@ -114,17 +67,19 @@ async def save_answer(
     return result
 
 
-@router.post("/{attempt_id}/submit", response_model=AttemptResultResponse)
+@router.post("/{attempt_id}/submit", response_model=SubmitAttemptResponse)
 async def submit_attempt(
     attempt_id: str,
     current_user: dict = Depends(require_student),
     attempt_service: AttemptService = Depends(get_attempt_service),
 ):
     """
-    Submit an attempt and receive the computed score and breakdown.
+    Submit an attempt and receive the immediate score summary.
 
     Only the student who owns the attempt can submit it. Expired
     attempts can still be submitted; already-submitted attempts cannot.
+    For the full per-question breakdown, view the result afterward
+    via the Result module.
     """
     result = await attempt_service.submit_attempt(
         attempt_id, student_id=current_user["sub"]
