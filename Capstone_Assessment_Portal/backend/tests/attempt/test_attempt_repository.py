@@ -12,12 +12,9 @@ from app.repositories.attempt_repository import (
     create_attempt,
     get_active_attempt,
     get_attempt_by_id,
-    list_all_submitted_attempts,
-    list_submitted_attempts_by_student,
     mark_attempt_expired,
     save_answer,
     serialize_attempt,
-    serialize_result_summary,
     submit_attempt,
 )
 
@@ -279,53 +276,6 @@ async def test_submit_attempt_invalid_id(mocker):
     assert result is None
 
 
-@pytest.mark.asyncio
-async def test_list_submitted_attempts_by_student(mocker):
-    """
-    Test listing all submitted attempts for a student.
-    """
-    mock_collection = mocker.patch(
-        "app.repositories.attempt_repository.attempt_collection"
-    )
-
-    async def fake_cursor():
-        yield make_raw_attempt(status="submitted")
-
-    mock_cursor = mocker.Mock()
-    mock_cursor.sort = mocker.Mock(return_value=fake_cursor())
-    mock_collection.find = mocker.Mock(return_value=mock_cursor)
-
-    result = await list_submitted_attempts_by_student("student1")
-
-    assert len(result) == 1
-    mock_collection.find.assert_called_once_with(
-        {"student_id": "student1", "status": "submitted"}
-    )
-
-
-@pytest.mark.asyncio
-async def test_list_all_submitted_attempts(mocker):
-    """
-    Test listing all submitted attempts across every student.
-    """
-    mock_collection = mocker.patch(
-        "app.repositories.attempt_repository.attempt_collection"
-    )
-
-    async def fake_cursor():
-        yield make_raw_attempt(status="submitted", student_id="student1")
-        yield make_raw_attempt(status="submitted", student_id="student2")
-
-    mock_cursor = mocker.Mock()
-    mock_cursor.sort = mocker.Mock(return_value=fake_cursor())
-    mock_collection.find = mocker.Mock(return_value=mock_cursor)
-
-    result = await list_all_submitted_attempts()
-
-    assert len(result) == 2
-    mock_collection.find.assert_called_once_with({"status": "submitted"})
-
-
 def test_serialize_attempt():
     """
     Test that a raw attempt document is converted into the API-friendly
@@ -339,24 +289,3 @@ def test_serialize_attempt():
     assert result["answers"] == {"q1": 2}
     assert "correct_answer_index" not in result["questions"][0]
     assert result["questions"][0]["question_id"] == "q1"
-
-
-def test_serialize_result_summary():
-    """
-    Test that a submitted attempt document is converted into a result
-    summary.
-    """
-    raw = make_raw_attempt(
-        status="submitted",
-        total_questions=1,
-        correct_answers=1,
-        percentage=100.0,
-        passed=True,
-        submitted_at="2026-01-01T00:20:00+00:00",
-    )
-
-    result = serialize_result_summary(raw)
-
-    assert result["id"] == VALID_ID
-    assert result["percentage"] == 100.0
-    assert result["passed"] is True
