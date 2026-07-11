@@ -49,5 +49,7 @@ ATTEMPT_EXPIRED_MESSAGE = "This attempt has expired."
 ATTEMPT_ACCESS_DENIED_MESSAGE = "You are not authorized to access this attempt."
 INVALID_QUESTION_FOR_ATTEMPT_MESSAGE = "This question does not belong to the current attempt."
 INVALID_ANSWER_INDEX_MESSAGE = "answer_index is out of range for this question's options."
-# Submission messages
+
 ATTEMPT_ALREADY_SUBMITTED_MESSAGE = "This attempt has already been submitted."
+
+ATTEMPT_NOT_SUBMITTED_MESSAGE = "This attempt has not been submitted yet."

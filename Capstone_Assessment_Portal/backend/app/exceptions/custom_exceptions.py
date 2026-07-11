@@ -95,4 +95,7 @@ class InvalidAttemptAnswerException(Exception):
         super().__init__(detail)
 
 class AttemptAlreadySubmittedException(Exception):
-    """Raised when a student tries to submit an attempt that was already submitted."""        
+    """Raised when a student tries to submit an attempt that was already submitted.""" 
+
+class AttemptNotSubmittedException(Exception):
+    """Raised when trying to view the result of an attempt that hasn't been submitted yet."""           
