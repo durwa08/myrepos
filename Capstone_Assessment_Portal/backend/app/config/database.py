@@ -49,3 +49,9 @@ async def ensure_indexes():
         unique=True,
         name="unique_question_text_per_quiz",
     )
+
+    attempt_collection = database["attempts"]
+    await attempt_collection.create_index(
+        [("student_id", 1), ("quiz_id", 1)],
+        name="student_quiz_lookup",
+    )

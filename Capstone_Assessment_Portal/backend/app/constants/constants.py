@@ -5,7 +5,6 @@ STUDENT_ROLE = "student"
 
 RoleType: TypeAlias = Literal["admin", "student"]
 
-# Auth messages
 USER_ALREADY_EXISTS_MESSAGE = "A user with this email already exists."
 INVALID_CREDENTIALS_MESSAGE = "Invalid email or password."
 INVALID_REFRESH_TOKEN_MESSAGE = "Invalid or expired refresh token."
@@ -37,5 +36,10 @@ INVALID_OPTIONS_COUNT_MESSAGE = "MCQ questions must have exactly 4 options."
 INVALID_CORRECT_ANSWER_INDEX_MESSAGE = (
     "correct_answer_index is out of range for the given question type."
 )
+
 MCQ_OPTIONS_COUNT = 4
 TRUE_FALSE_OPTIONS = ["True", "False"]
+
+ATTEMPT_NOT_FOUND_MESSAGE = "Attempt not found."
+MAX_ATTEMPTS_REACHED_MESSAGE = "Maximum number of attempts reached for this quiz."
+MAX_ATTEMPTS_ALLOWED = 3
