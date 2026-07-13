@@ -11,7 +11,7 @@ from app.middleware.auth_middleware import get_current_user, require_admin
 from app.schemas.common_schema import MessageResponse
 from app.schemas.quiz_schema import QuizCreateRequest, QuizResponse, QuizUpdateRequest
 from app.services.quiz_service import QuizService
-from app.schemas.common_schema import MessageResponse
+from app.repositories.question_repository import count_questions_by_quiz
 
 router = APIRouter(prefix="/quizzes", tags=["Quizzes"])
 
@@ -69,6 +69,19 @@ async def get_quiz(
     """
     result = await quiz_service.get_quiz(quiz_id)
     return result
+
+
+@router.get("/{quiz_id}/question-count")
+async def get_quiz_question_count(
+    quiz_id: str,
+    current_user: dict = Depends(get_current_user),
+):
+    """Get the number of questions in a quiz."""
+    try:
+        count = await count_questions_by_quiz(quiz_id)
+        return {"quiz_id": quiz_id, "question_count": count}
+    except Exception:
+        return {"quiz_id": quiz_id, "question_count": 0}
 
 
 @router.put("/{quiz_id}", response_model=QuizResponse)

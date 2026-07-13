@@ -6,7 +6,7 @@ from motor.motor_asyncio import AsyncIOMotorClient
 
 from app.config.settings import settings
 
-client = AsyncIOMotorClient(settings.mongo_uri)
+client = AsyncIOMotorClient(settings.mongo_uri, tz_aware=True)
 database = client[settings.database_name]
 
 

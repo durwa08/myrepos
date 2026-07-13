@@ -5,7 +5,7 @@ Response schemas for result viewing APIs.
 from datetime import datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class AnswerBreakdownItem(BaseModel):
@@ -15,6 +15,7 @@ class AnswerBreakdownItem(BaseModel):
 
     question_id: str
     question_text: str
+    options: list[str]
     selected_answer_index: Optional[int]
     correct_answer_index: int
     is_correct: bool

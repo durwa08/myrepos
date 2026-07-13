@@ -12,10 +12,9 @@ from app.middleware.auth_middleware import (
     require_admin,
 )
 
-# all auth related routes go here, mounted with /auth prefix in main.py
+
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
-# reusing the same service instance for every request
 auth_service = AuthService()
 
 

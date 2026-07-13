@@ -13,20 +13,17 @@ INVALID_PASSWORD_MESSAGE = (
     "Password must be at least 8 characters long and include "
     "one uppercase letter, one digit, and one special character."
 )
-
-# Category messages
 CATEGORY_NOT_FOUND_MESSAGE = "Category not found."
 CATEGORY_ALREADY_EXISTS_MESSAGE = "A category with this name already exists."
 CATEGORY_DELETED_MESSAGE = "Category deleted successfully."
 
-# Quiz messages
 QUIZ_NOT_FOUND_MESSAGE = "Quiz not found."
 QUIZ_ALREADY_EXISTS_MESSAGE = (
     "A quiz with this title already exists in the selected category."
 )
 QUIZ_DELETED_MESSAGE = "Quiz deleted successfully."
 
-# Question messages
+
 QUESTION_NOT_FOUND_MESSAGE = "Question not found."
 QUESTION_ALREADY_EXISTS_MESSAGE = (
     "A question with this text already exists in the selected quiz."
