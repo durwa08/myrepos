@@ -5,18 +5,29 @@ import {
   getCategories,
   getQuizzes,
   getQuizzesQuestionCounts,
+  getActiveAttempt,
   startAttempt,
 } from "../services/quizService";
 import "../styles/browseQuizzes.css";
 
+/**
+ * BrowseQuizzes Component
+ * Allows students to view available quizzes, see current progression,
+ * and either start a new attempt or resume an active session.
+ */
 function BrowseQuizzes() {
   const navigate = useNavigate();
   const [quizzes, setQuizzes] = useState([]);
   const [categories, setCategories] = useState([]);
   const [questionCounts, setQuestionCounts] = useState({});
   const [loading, setLoading] = useState(true);
+  const [activeAttempts, setActiveAttempts] = useState({});
 
   useEffect(() => {
+    /**
+     * Fetches initialization data for the page including categories,
+     * available quizzes, question quantities, and active student attempts.
+     */
     const loadQuizzesData = async () => {
       try {
         const [quizData, categoryData] = await Promise.all([
@@ -31,6 +42,17 @@ function BrowseQuizzes() {
           const quizIds = quizData.map((quiz) => quiz.id);
           const counts = await getQuizzesQuestionCounts(quizIds);
           setQuestionCounts(counts);
+
+          const activeChecks = {};
+          await Promise.all(
+            quizData.map(async (quiz) => {
+              const active = await getActiveAttempt(quiz.id);
+              if (active) {
+                activeChecks[quiz.id] = active;
+              }
+            })
+          );
+          setActiveAttempts(activeChecks);
         }
       } catch (error) {
         console.error("Failed to load quizzes:", error);
@@ -44,20 +66,32 @@ function BrowseQuizzes() {
     loadQuizzesData();
   }, []);
 
+  /**
+   * Resolves a category ID to its corresponding display name.
+   * @param {string|number} categoryId - The unique identifier of the category.
+   * @returns {string} The matching category name, or "General" as a fallback.
+   */
   const getCategoryName = (categoryId) => {
     const category = categories.find((cat) => cat.id === categoryId);
     return category ? category.name : "General";
   };
 
+  /**
+   * Retrieves the question quantity for a specific quiz tracking key.
+   * @param {string|number} quizId - The unique identifier of the target quiz.
+   * @returns {number} Number of assigned questions.
+   */
   const getQuestionCount = (quizId) => {
     return questionCounts[quizId] || 0;
   };
 
+  /**
+   * Initiates or resumes a quiz attempt sequence.
+   * @param {Object} quiz - The configuration record of the selected quiz.
+   */
   const handleStartQuiz = async (quiz) => {
     try {
-      
       const attempt = await startAttempt(quiz.id);
-
       navigate(`/student/attempt/${attempt.id}`);
     } catch (error) {
       console.error("Failed to start/resume quiz:", error);
@@ -116,11 +150,11 @@ function BrowseQuizzes() {
                   </div>
                 </div>
 
-                <button
+                <button 
                   className="start-quiz-btn"
                   onClick={() => handleStartQuiz(quiz)}
                 >
-                  Start Quiz
+                  {activeAttempts[quiz.id] ? "Continue Quiz" : "Start Quiz"}
                 </button>
               </div>
             ))}

@@ -59,3 +59,7 @@ export const getCategories = async () => {
   const response = await api.get("/categories");
   return response.data;
 };
+export const getActiveAttempt = async (quizId) => {
+  const response = await api.get(`/attempts/active/${quizId}`);
+  return response.data;
+};

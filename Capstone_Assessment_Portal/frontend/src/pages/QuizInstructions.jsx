@@ -6,10 +6,16 @@ import {
   getQuizById,
   getCategories,
   startAttempt,
+  getActiveAttempt,
 } from "../services/quizService";
 
 import "../styles/quizInstructions.css";
 
+/**
+ * QuizInstructions Component
+ * Displays instructions and metadata for a specific quiz, allowing students 
+ * to either start a brand new attempt or resume an active session.
+ */
 function QuizInstructions() {
   const { quizId } = useParams();
   const navigate = useNavigate();
@@ -17,14 +23,22 @@ function QuizInstructions() {
   const [quiz, setQuiz] = useState(null);
   const [loading, setLoading] = useState(true);
   const [starting, setStarting] = useState(false);
+  const [hasActiveAttempt, setHasActiveAttempt] = useState(false);
 
   useEffect(() => {
+    /**
+     * Fetches initialization data for the target quiz including its metadata,
+     * category assignment, and active completion statuses.
+     */
     async function loadQuiz() {
       try {
         const [quizData, categories] = await Promise.all([
           getQuizById(quizId),
           getCategories(),
         ]);
+
+        const active = await getActiveAttempt(quizId);
+        setHasActiveAttempt(Boolean(active));
 
         const category = categories.find(
           (item) => item.id === quizData.category_id
@@ -45,20 +59,15 @@ function QuizInstructions() {
   }, [quizId]);
 
   /**
-   * Start (or resume, via the backend's built-in auto-resume) the
-   * quiz attempt. Since there's no separate endpoint to check for an
-   * existing in-progress attempt beforehand, the resume state is
-   * detected after the fact by checking whether the returned attempt
-   * already has saved answers.
+   * Initiates or resumes a quiz attempt sequence.
+   * Leverages built-in backend auto-resume mechanisms if an attempt exists.
    */
   const handleStartAssessment = async () => {
     try {
       setStarting(true);
 
       const attempt = await startAttempt(quizId);
-
-      const isResuming =
-        attempt.answers && Object.keys(attempt.answers).length > 0;
+      const isResuming = Object.keys(attempt.answers || {}).length > 0;
 
       toast.success(
         isResuming
@@ -72,7 +81,7 @@ function QuizInstructions() {
 
       toast.error(
         error.response?.data?.detail ||
-          "Unable to start assessment."
+        "Unable to start assessment."
       );
     } finally {
       setStarting(false);
@@ -148,7 +157,11 @@ function QuizInstructions() {
             onClick={handleStartAssessment}
             disabled={starting}
           >
-            {starting ? "Starting Assessment..." : "Start Assessment"}
+            {starting
+              ? "Starting Assessment..."
+              : hasActiveAttempt
+              ? "Continue Assessment"
+              : "Start Assessment"}
           </button>
         </div>
       </div>
