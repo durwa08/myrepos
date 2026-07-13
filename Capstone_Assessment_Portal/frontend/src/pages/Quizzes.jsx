@@ -10,12 +10,25 @@ import {
 } from "../services/quizService";
 
 import { getCategories, createCategory } from "../services/categoryService";
+import { toast } from "react-toastify";
 
 import "../styles/quiz.css";
 
+/** @type {string[]} */
 const DURATION_PRESETS = ["10", "15", "20", "30", "45", "60", "90", "120"];
+/** @type {string[]} */
 const PASS_PRESETS = ["20", "30", "35", "40", "50", "60", "70", "80"];
 
+/**
+ * @typedef {Object} QuizForm
+ * @property {string} title
+ * @property {string} description
+ * @property {string} category_id
+ * @property {string|number} time_limit_minutes
+ * @property {number} pass_percentage
+ */
+
+/** @type {QuizForm} */
 const EMPTY_FORM = {
   title: "",
   description: "",
@@ -24,6 +37,13 @@ const EMPTY_FORM = {
   pass_percentage: 40,
 };
 
+/**
+ * Quizzes Management Component.
+ * Handles CRUD operations, category linking, and paginated display.
+ * 
+ * @component
+ * @returns {React.JSX.Element}
+ */
 function Quizzes() {
   const [quizzes, setQuizzes] = useState([]);
   const [categories, setCategories] = useState([]);
@@ -48,6 +68,15 @@ function Quizzes() {
 
   const [fieldErrors, setFieldErrors] = useState({ title: "", duration: "" });
 
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
+
+  /**
+   * Resets the form properties and conditional dropdown states back to defaults.
+   * 
+   * @function
+   * @returns {void}
+   */
   const resetFormState = () => {
     setFormData(EMPTY_FORM);
     setShowNewCategoryInput(false);
@@ -57,24 +86,38 @@ function Quizzes() {
     setFieldErrors({ title: "", duration: "" });
   };
 
+  /**
+   * Fetches the root array of quizzes from the API endpoint.
+   * 
+   * @async
+   * @function
+   * @returns {Promise<void>}
+   */
   const fetchQuizzes = async () => {
     try {
       setLoading(true);
-
       const data = await getQuizzes();
-
       setQuizzes(data);
       setError("");
     } catch (error) {
-      setError(
+      const message =
         error.response?.data?.detail ||
-          "Unable to load quizzes."
-      );
+        "Unable to load quizzes.";
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
+  /**
+   * Fetches available category profiles for selection matching.
+   * 
+   * @async
+   * @function
+   * @returns {Promise<void>}
+   */
   const fetchCategories = async () => {
     try {
       const data = await getCategories();
@@ -84,6 +127,14 @@ function Quizzes() {
     }
   };
 
+  /**
+   * Updates fields inside the state controller object. Handles configuration
+   * toggles for tracking customized string insertions.
+   * 
+   * @function
+   * @param {React.ChangeEvent<HTMLInputElement|HTMLSelectElement|HTMLTextAreaElement>} e
+   * @returns {void}
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
 
@@ -128,6 +179,13 @@ function Quizzes() {
     });
   };
 
+  /**
+   * Commits a nested category submission workflow contextually inside the open dialog.
+   * 
+   * @async
+   * @function
+   * @returns {Promise<void>}
+   */
   const handleAddNewCategory = async () => {
     if (!newCategoryName.trim()) {
       setError("Category name is required.");
@@ -135,7 +193,11 @@ function Quizzes() {
     }
 
     try {
-      const created = await createCategory({ name: newCategoryName });
+      const created = await createCategory({
+        name: newCategoryName,
+      });
+
+      toast.success("Category created successfully.");
 
       await fetchCategories();
 
@@ -148,13 +210,22 @@ function Quizzes() {
       setShowNewCategoryInput(false);
       setError("");
     } catch (error) {
-      setError(
+      const message =
         error.response?.data?.detail ||
-          "Unable to add category."
-      );
+        "Unable to add category.";
+
+      setError(message);
+      toast.error(message);
     }
   };
 
+  /**
+   * Initializes target parameters within active modal layouts for patch mapping.
+   * 
+   * @function
+   * @param {Object} quiz 
+   * @returns {void}
+   */
   const handleEditClick = (quiz) => {
     setEditingQuiz(quiz);
 
@@ -169,8 +240,6 @@ function Quizzes() {
     setShowNewCategoryInput(false);
     setNewCategoryName("");
 
-    // If the saved value isn't one of the presets, drop straight into
-    // custom-input mode so editing doesn't silently blank the value.
     setShowCustomDuration(
       !DURATION_PRESETS.includes(String(quiz.time_limit_minutes))
     );
@@ -183,11 +252,25 @@ function Quizzes() {
     setError("");
   };
 
+  /**
+   * Places targeted data payload objects onto local removal buffers.
+   * 
+   * @function
+   * @param {Object} quiz 
+   * @returns {void}
+   */
   const handleDeleteClick = (quiz) => {
     setSelectedQuiz(quiz);
     setDeleteModal(true);
   };
 
+  /**
+   * Validates form integrity checks before committing updates or new records.
+   * 
+   * @async
+   * @function
+   * @returns {Promise<void>}
+   */
   const handleSaveQuiz = async () => {
     const newFieldErrors = { title: "", duration: "" };
     let hasFieldError = false;
@@ -236,40 +319,56 @@ function Quizzes() {
 
       if (editingQuiz) {
         await updateQuiz(editingQuiz.id, payload);
+        toast.success("Quiz updated successfully.");
       } else {
         await createQuiz(payload);
+        toast.success("Quiz created successfully.");
       }
 
       setShowModal(false);
-
       setEditingQuiz(null);
-
       resetFormState();
-
       await fetchQuizzes();
     } catch (error) {
-      setError(
+      const message =
         error.response?.data?.detail ||
-          "Unable to save quiz."
-      );
+        "Unable to save quiz.";
+
+      setError(message);
+      toast.error(message);
     }
   };
 
+  /**
+   * Clears specific instances from system parameters through database queries.
+   * 
+   * @async
+   * @function
+   * @returns {Promise<void>}
+   */
   const handleDeleteQuiz = async () => {
     try {
       await deleteQuiz(selectedQuiz.id);
+      toast.success("Quiz deleted successfully.");
 
       setDeleteModal(false);
       setSelectedQuiz(null);
 
+      if (paginatedQuizzes.length === 1 && currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
+
       await fetchQuizzes();
     } catch (error) {
-      setError(
+      const message =
         error.response?.data?.detail ||
-          "Unable to delete quiz."
-      );
+        "Unable to delete quiz.";
+
+      setError(message);
+      toast.error(message);
     }
   };
+
   useEffect(() => {
     const loadData = async () => {
       await Promise.all([
@@ -280,7 +379,30 @@ function Quizzes() {
 
     loadData();
   }, []);
-    return (
+
+  /** @type {number} */
+  const totalPages = Math.ceil(quizzes.length / itemsPerPage);
+  /** @type {number} */
+  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+  /** @type {number} */
+  const indexOfLastItem = currentPage * itemsPerPage;
+  /** @type {Object[]} */
+  const paginatedQuizzes = quizzes.slice(indexOfFirstItem, indexOfLastItem);
+
+  /**
+   * Modifies page state view index ranges.
+   * 
+   * @function
+   * @param {number} pageNumber 
+   * @returns {void}
+   */
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
+  return (
     <AdminLayout>
       <div className="quiz-page">
         <div className="quiz-header">
@@ -290,9 +412,7 @@ function Quizzes() {
             className="add-category-btn"
             onClick={() => {
               setEditingQuiz(null);
-
               resetFormState();
-
               setError("");
               setShowModal(true);
             }}
@@ -305,9 +425,7 @@ function Quizzes() {
           <div className="modal-overlay">
             <div className="category-modal">
               <h2>
-                {editingQuiz
-                  ? "Edit Quiz"
-                  : "Add Quiz"}
+                {editingQuiz ? "Edit Quiz" : "Add Quiz"}
               </h2>
 
               <label className="field-label">Quiz Title</label>
@@ -337,9 +455,7 @@ function Quizzes() {
                 value={formData.category_id}
                 onChange={handleInputChange}
               >
-                <option value="">
-                  Select Category
-                </option>
+                <option value="">Select Category</option>
 
                 {categories.map((category) => (
                   <option
@@ -502,7 +618,7 @@ function Quizzes() {
                     setShowModal(false);
                     setEditingQuiz(null);
                     setError("");
-                    setFieldErrors({ title: "", duration: "" });
+                    resetFormState();
                   }}
                 >
                   Cancel
@@ -549,12 +665,52 @@ function Quizzes() {
         ) : error && !showModal ? (
           <h3>{error}</h3>
         ) : (
-          <QuizTable
-            quizzes={quizzes}
-            categories={categories}
-            onEdit={handleEditClick}
-            onDelete={handleDeleteClick}
+          <>
+            <QuizTable
+              quizzes={paginatedQuizzes}
+              startIndex={indexOfFirstItem}
+              categories={categories}
+              onEdit={handleEditClick}
+              onDelete={handleDeleteClick}
             />
+
+            {totalPages > 1 && (
+              <div className="pagination-container">
+                <button
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+
+                <div className="pagination-pages-list">
+                  {[...Array(totalPages)].map((_, index) => {
+                    const pageNum = index + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        className={`pagination-page-number ${
+                          currentPage === pageNum ? "active" : ""
+                        }`}
+                        onClick={() => handlePageChange(pageNum)}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                </div>
+
+                <button
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
+                >
+                  Next
+                </button>
+              </div>
+            )}
+          </>
         )}
       </div>
     </AdminLayout>

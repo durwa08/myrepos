@@ -4,6 +4,7 @@ import { Navigate } from "react-router-dom";
 import useAuth from "../hooks/useAuth";
 import { checkEmail } from "../services/authService";
 import { getAccessToken, getRole } from "../utils/storage";
+import { toast } from "react-toastify";
 import {
   validateLogin,
   validateRegister,
@@ -107,15 +108,17 @@ function Login() {
           password: formData.password,
         });
 
-        alert("Registration Successful. Please Login.");
+        toast.success("Registration successful. Please login.");
 
         setIsLogin(true);
         resetForm();
       }
     } catch (error) {
-      setApiError(
-        error.response?.data?.detail || "Something went wrong."
-      );
+    const message =
+    error.response?.data?.detail || "Something went wrong.";
+
+    setApiError(message);
+    toast.error(message);
     } finally {
       setLoading(false);
     }
