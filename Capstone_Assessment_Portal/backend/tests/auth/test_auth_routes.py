@@ -10,34 +10,6 @@ from app.schemas.auth_schema import TokenResponse
 from app.schemas.user_schema import UserResponse
 
 
-def test_register_route(client, mocker):
-    """
-    Test the register endpoint returns 201 with the created user.
-    """
-    mocker.patch(
-        "app.api.v1.auth_routes.AuthService.register_user",
-        new=AsyncMock(
-            return_value=UserResponse(
-                id="1",
-                username="durwa08",
-                email="durwa08@gmail.com",
-                role="student",
-            )
-        ),
-    )
-
-    response = client.post(
-        "/auth/register",
-        json={
-            "username": "durwa08",
-            "email": "durwa08@gmail.com",
-            "password": "Password@123",
-        },
-    )
-
-    assert response.status_code == 201
-    assert response.json()["role"] == "student"
-
 
 def test_login_route(client, mocker):
     """

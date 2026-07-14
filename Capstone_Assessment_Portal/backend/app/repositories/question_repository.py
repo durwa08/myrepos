@@ -4,7 +4,7 @@ Repository layer for question-related database operations.
 This module is responsible for all direct interactions with the
 questions collection in MongoDB.
 """
-
+import logging
 from bson import ObjectId
 from bson.errors import InvalidId
 from pymongo.errors import DuplicateKeyError
@@ -136,6 +136,17 @@ async def list_questions_by_quiz(quiz_id: str) -> list[dict]:
         questions.append(question)
 
     return questions
+
+async def count_questions_by_quiz(quiz_id: str) -> int:
+    """
+    Count total questions in a quiz.
+    """
+    try:
+        count = await question_collection.count_documents({"quiz_id": quiz_id})
+        return count
+    except Exception as e:
+        logging.error(f"Error counting questions for quiz {quiz_id}: {e}")
+        return 0
 
 
 def serialize_question(question: dict) -> dict:

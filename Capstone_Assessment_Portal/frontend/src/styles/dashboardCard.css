@@ -1,0 +1,20 @@
+.dashboard-card {
+  background: white;
+  border-radius: 12px;
+  padding: 24px;
+  box-shadow: 0 4px 12px rgba(0,0,0,.08);
+}
+
+.dashboard-card h3 {
+  margin: 0;
+  color: #6b7280;
+  font-size: 16px;
+}
+
+.dashboard-card span {
+  display: block;
+  margin-top: 12px;
+  font-size: 34px;
+  font-weight: 700;
+  color: #2563eb;
+}

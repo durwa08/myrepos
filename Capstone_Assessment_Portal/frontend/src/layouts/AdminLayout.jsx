@@ -1,17 +1,11 @@
-import { useState } from "react";
 import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
 import "../styles/adminLayout.css";
 
 function AdminLayout({ children }) {
-  const [activeMenu, setActiveMenu] = useState("dashboard");
-
   return (
     <div className="admin-layout">
-      <Sidebar
-        activeMenu={activeMenu}
-        setActiveMenu={setActiveMenu}
-      />
+      <Sidebar role="admin" />
 
       <div className="main-content">
         <Header />

@@ -40,6 +40,7 @@ from app.repositories.question_repository import list_questions_by_quiz
 from app.repositories.quiz_repository import get_quiz_by_id
 from app.schemas.attempt_schema import (
     AnswerSaveRequest,
+    AttemptCountResponse,
     AttemptResponse,
     SubmitAttemptResponse,
 )
@@ -261,5 +262,53 @@ class AttemptService:
             correct_answers=updated["correct_answers"],
             percentage=updated["percentage"],
             passed=updated["passed"],
+        )
+        return result
+    
+    async def get_active_attempt_for_quiz(
+        self, quiz_id: str, student_id: str
+    ) -> AttemptResponse | None:
+        """
+        Check whether the student has an unexpired, in-progress attempt
+        for a quiz, without starting or resuming one.
+
+        Returns None if there's no active attempt, so the frontend can
+        decide whether to show "Start" or "Continue" before the
+        student clicks anything.
+        """
+        active_attempt = await get_active_attempt(student_id, quiz_id)
+        if active_attempt is None:
+            return None
+
+        now = datetime.now(timezone.utc)
+        expires_at = active_attempt["expires_at"]
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+
+        if now > expires_at:
+            return None
+
+        result = AttemptResponse(**serialize_attempt(active_attempt))
+        return result
+
+    async def get_attempt_count_for_quiz(
+        self, quiz_id: str, student_id: str
+    ) -> AttemptCountResponse:
+        """
+        Report how many attempts a student has used on a quiz relative
+        to the maximum allowed, so the frontend can display "X / Y"
+        and disable the start button before the student clicks it.
+        """
+        attempts_used = await count_attempts_by_student_and_quiz(
+            student_id, quiz_id
+        )
+        attempts_remaining = max(MAX_ATTEMPTS_ALLOWED - attempts_used, 0)
+
+        result = AttemptCountResponse(
+            quiz_id=quiz_id,
+            attempts_used=attempts_used,
+            max_attempts=MAX_ATTEMPTS_ALLOWED,
+            attempts_remaining=attempts_remaining,
+            exhausted=attempts_used >= MAX_ATTEMPTS_ALLOWED,
         )
         return result

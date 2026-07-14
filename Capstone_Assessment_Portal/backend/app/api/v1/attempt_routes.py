@@ -11,6 +11,7 @@ from fastapi import APIRouter, Depends, status
 from app.middleware.auth_middleware import require_student
 from app.schemas.attempt_schema import (
     AnswerSaveRequest,
+    AttemptCountResponse,
     AttemptResponse,
     SubmitAttemptResponse,
 )
@@ -83,6 +84,39 @@ async def submit_attempt(
     """
     result = await attempt_service.submit_attempt(
         attempt_id, student_id=current_user["sub"]
+    )
+    return result
+
+
+@router.get("/active/{quiz_id}", response_model=AttemptResponse | None)
+async def get_active_attempt(
+    quiz_id: str,
+    current_user: dict = Depends(require_student),
+    attempt_service: AttemptService = Depends(get_attempt_service),
+):
+    """
+    Check if the student has an active (in-progress, unexpired)
+    attempt for a quiz, without starting a new one.
+    """
+    result = await attempt_service.get_active_attempt_for_quiz(
+        quiz_id, student_id=current_user["sub"]
+    )
+    return result
+
+
+@router.get("/count/{quiz_id}", response_model=AttemptCountResponse)
+async def get_attempt_count(
+    quiz_id: str,
+    current_user: dict = Depends(require_student),
+    attempt_service: AttemptService = Depends(get_attempt_service),
+):
+    """
+    Report how many attempts the student has used on a quiz and how
+    many remain, so the frontend can display attempt usage and
+    disable starting a new attempt once the limit is reached.
+    """
+    result = await attempt_service.get_attempt_count_for_quiz(
+        quiz_id, student_id=current_user["sub"]
     )
     return result
 

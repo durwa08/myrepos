@@ -1,6 +1,8 @@
 import { FaEdit, FaTrash } from "react-icons/fa";
+
 function CategoryTable({
   categories,
+  startIndex = 0,
   onEdit,
   onDelete,
 }) {
@@ -25,8 +27,9 @@ function CategoryTable({
 
       <tbody>
         {categories.map((category, index) => (
-          <tr key={category.id}>
-            <td>{index + 1}</td>
+          <tr key={category.id || index}>
+            {/* Displays continuous serial numbers across paginated pages */}
+            <td>{startIndex + index + 1}</td>
             <td>{category.name}</td>
             <td>{category.created_by}</td>
 
@@ -34,18 +37,18 @@ function CategoryTable({
               <button
                 className="edit-btn"
                 onClick={() => onEdit(category)}
->
-               <FaEdit />
-               <span>Edit</span>
+              >
+                <FaEdit />
+                <span>Edit</span>
               </button>
 
               <button
-               className="delete-btn"
-               onClick={() => onDelete(category)}
->
+                className="delete-btn"
+                onClick={() => onDelete(category)}
+              >
                 <FaTrash />
                 <span>Delete</span>
-                </button>
+              </button>
             </td>
           </tr>
         ))}

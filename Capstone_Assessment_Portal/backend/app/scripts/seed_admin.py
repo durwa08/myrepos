@@ -4,15 +4,10 @@ Standalone script to create the single admin account.
 Run this manually once, after setting up the database, using:
     python -m app.scripts.seed_admin
 
-Prompts for admin username, email, and password on the command line,
-asks for password confirmation to catch typos, validates the password
-against the same rules used at registration, and inserts the admin
-document directly — bypassing the public /auth/register endpoint,
-which only ever creates students.
 
-Note: password input is visible on screen (not masked). This is a
+password input is visible on screen (not masked). This is a
 deliberate tradeoff for this one-time local setup script, since
-getpass.getpass() does not reliably capture input in Git Bash (MINGW64)
+getpass.getpass() does not reliably capture input in Git Bash
 on Windows and can silently produce an empty password.
 """
 

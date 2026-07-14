@@ -30,7 +30,11 @@ logger = logging.getLogger(__name__)
 class ResultService:
     """Service class for result-viewing business operations."""
 
-    async def get_result(self, attempt_id: str, student_id: str) -> AttemptResultResponse:
+    async def get_result(
+        self,
+        attempt_id: str,
+        student_id: str,
+    ) -> AttemptResultResponse:
         """
         Retrieve the result of a submitted attempt.
 
@@ -49,14 +53,17 @@ class ResultService:
             raise AttemptNotSubmittedException()
 
         breakdown = []
+
         for question in attempt["questions_snapshot"]:
             question_id = question["question_id"]
             selected_index = attempt.get("answers", {}).get(question_id)
             correct_index = question["correct_answer_index"]
+
             breakdown.append(
                 AnswerBreakdownItem(
                     question_id=question_id,
                     question_text=question["question_text"],
+                    options=question["options"],
                     selected_answer_index=selected_index,
                     correct_answer_index=correct_index,
                     is_correct=selected_index == correct_index,
@@ -76,16 +83,23 @@ class ResultService:
             passed=attempt["passed"],
             answer_breakdown=breakdown,
         )
+
         return result
 
-    async def get_history(self, student_id: str) -> list[ResultHistoryItem]:
+    async def get_history(
+        self,
+        student_id: str,
+    ) -> list[ResultHistoryItem]:
         """
         Retrieve a student's full history of submitted attempt results.
         """
         attempts = await list_submitted_attempts_by_student(student_id)
+
         result = [
-            ResultHistoryItem(**serialize_result_summary(a)) for a in attempts
+            ResultHistoryItem(**serialize_result_summary(attempt))
+            for attempt in attempts
         ]
+
         return result
 
     async def get_admin_dashboard(self) -> list[ResultHistoryItem]:
@@ -95,7 +109,10 @@ class ResultService:
         Used for the admin results dashboard.
         """
         attempts = await list_all_submitted_attempts()
+
         result = [
-            ResultHistoryItem(**serialize_result_summary(a)) for a in attempts
+            ResultHistoryItem(**serialize_result_summary(attempt))
+            for attempt in attempts
         ]
+
         return result

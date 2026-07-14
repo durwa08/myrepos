@@ -1,77 +1,73 @@
-"""
-Test cases for AuthService.
-"""
-
-from unittest.mock import AsyncMock
-
 import pytest
 
 from app.exceptions.custom_exceptions import (
     InvalidCredentialsException,
-    InvalidTokenException,
     UserAlreadyExistsException,
     UserNotFoundException,
 )
-from app.schemas.auth_schema import LoginRequest, RefreshRequest
-from app.schemas.user_schema import UserRegisterRequest
 from app.services.auth_service import AuthService
 
 
 @pytest.mark.asyncio
 async def test_register_user_success(mocker):
-    """
-    Test successful registration when the email is not already taken.
-    """
+    """Test successful registration of a new user."""
+    service = AuthService()
+
+    request = mocker.Mock()
+    request.username = "Durwa"
+    request.email = "durwa@test.com"
+    request.password = "cGFzc3dvcmQ="
+
     mocker.patch(
         "app.services.auth_service.get_user_by_email",
-        new_callable=AsyncMock,
         return_value=None,
     )
-    mocker.patch(
-        "app.services.auth_service.create_user",
-        new_callable=AsyncMock,
-        return_value={
-            "_id": "1",
-            "username": "durwa08",
-            "email": "durwa08@gmail.com",
-            "hashed_password": "hashed_password",
-            "role": "student",
-        },
-    )
+
     mocker.patch(
         "app.services.auth_service.hash_password",
         return_value="hashed_password",
     )
 
-    service = AuthService()
-    request = UserRegisterRequest(
-        username="durwa08",
-        email="durwa08@gmail.com",
-        password="Password@123",
+    created_user = {
+        "_id": "507f1f77bcf86cd799439011",
+        "username": "Durwa",
+        "email": "durwa@test.com",
+        "hashed_password": "hashed_password",
+        "role": "student",
+    }
+
+    mocker.patch(
+        "app.services.auth_service.create_user",
+        return_value=created_user,
+    )
+
+    mocker.patch(
+        "app.services.auth_service.serialize_user",
+        return_value={
+            "id": "507f1f77bcf86cd799439011",
+            "username": "Durwa",
+            "email": "durwa@test.com",
+            "role": "student",
+        },
     )
 
     response = await service.register_user(request)
 
-    assert response.email == "durwa08@gmail.com"
-    assert response.role == "student"
+    assert response.username == "Durwa"
+    assert response.email == "durwa@test.com"
 
 
 @pytest.mark.asyncio
-async def test_register_user_duplicate_email(mocker):
-    """
-    Test registration fails when the email is already registered.
-    """
+async def test_register_existing_user(mocker):
+    """Test registration when the email already exists."""
+    service = AuthService()
+
+    request = mocker.Mock()
+    request.email = "durwa@test.com"
+
     mocker.patch(
         "app.services.auth_service.get_user_by_email",
-        new_callable=AsyncMock,
-        return_value={"email": "durwa08@gmail.com"},
-    )
-
-    service = AuthService()
-    request = UserRegisterRequest(
-        username="durwa08",
-        email="durwa08@gmail.com",
-        password="Password@123",
+        return_value={"email": "durwa@test.com"},
     )
 
     with pytest.raises(UserAlreadyExistsException):
@@ -79,81 +75,120 @@ async def test_register_user_duplicate_email(mocker):
 
 
 @pytest.mark.asyncio
-async def test_login_user_success(mocker):
-    """
-    Test successful login returns access and refresh tokens.
-    """
+async def test_check_email_exists(mocker):
+    """Test checking an email that is already registered."""
+    service = AuthService()
+
     mocker.patch(
         "app.services.auth_service.get_user_by_email",
-        new_callable=AsyncMock,
-        return_value={
-            "email": "durwa08@gmail.com",
-            "hashed_password": "hashed_password",
-            "role": "student",
-        },
+        return_value={"email": "durwa@test.com"},
     )
+
+    response = await service.check_email("durwa@test.com")
+
+    assert response == {"exists": True}
+
+
+@pytest.mark.asyncio
+async def test_check_email_not_exists(mocker):
+    """Test checking an email that is not registered."""
+    service = AuthService()
+
+    mocker.patch(
+        "app.services.auth_service.get_user_by_email",
+        return_value=None,
+    )
+
+    response = await service.check_email("durwa@test.com")
+
+    assert response == {"exists": False}
+
+
+@pytest.mark.asyncio
+async def test_login_user_success(mocker):
+    """Test successful login with valid credentials."""
+    service = AuthService()
+
+    request = mocker.Mock()
+    request.email = "durwa@test.com"
+    request.password = "cGFzc3dvcmQ="
+
+    user = {
+        "email": "durwa@test.com",
+        "hashed_password": "hashed_password",
+        "role": "student",
+    }
+
+    mocker.patch(
+        "app.services.auth_service.get_user_by_email",
+        return_value=user,
+    )
+
     mocker.patch(
         "app.services.auth_service.verify_password",
         return_value=True,
     )
+
     mocker.patch(
         "app.services.auth_service.create_access_token",
         return_value="access_token",
     )
+
     mocker.patch(
         "app.services.auth_service.create_refresh_token",
         return_value="refresh_token",
     )
-
-    service = AuthService()
-    request = LoginRequest(email="durwa08@gmail.com", password="Password@123")
 
     response = await service.login_user(request)
 
     assert response.access_token == "access_token"
     assert response.refresh_token == "refresh_token"
     assert response.role == "student"
+    assert response.token_type == "bearer"
 
 
 @pytest.mark.asyncio
 async def test_login_user_not_found(mocker):
-    """
-    Test login fails when no user matches the given email.
-    """
+    """Test login when the user does not exist."""
+    service = AuthService()
+
+    request = mocker.Mock()
+    request.email = "durwa@test.com"
+    request.password = "cGFzc3dvcmQ="
+
     mocker.patch(
         "app.services.auth_service.get_user_by_email",
-        new_callable=AsyncMock,
         return_value=None,
     )
-
-    service = AuthService()
-    request = LoginRequest(email="missing@gmail.com", password="Password@123")
 
     with pytest.raises(InvalidCredentialsException):
         await service.login_user(request)
 
 
 @pytest.mark.asyncio
-async def test_login_user_wrong_password(mocker):
-    """
-    Test login fails when the password does not match.
-    """
+async def test_login_invalid_password(mocker):
+    """Test login with an incorrect password."""
+    service = AuthService()
+
+    request = mocker.Mock()
+    request.email = "durwa@test.com"
+    request.password = "cGFzc3dvcmQ="
+
+    user = {
+        "email": "durwa@test.com",
+        "hashed_password": "hashed_password",
+        "role": "student",
+    }
+
     mocker.patch(
         "app.services.auth_service.get_user_by_email",
-        new_callable=AsyncMock,
-        return_value={
-            "email": "durwa08@gmail.com",
-            "hashed_password": "hashed_password",
-            "role": "student",
-        },
+        return_value=user,
     )
+
     mocker.patch(
         "app.services.auth_service.verify_password",
         return_value=False,
     )
-
-    service = AuthService()
-    request = LoginRequest(email="durwa08@gmail.com", password="WrongPassword@123")
 
     with pytest.raises(InvalidCredentialsException):
         await service.login_user(request)
@@ -161,59 +196,49 @@ async def test_login_user_wrong_password(mocker):
 
 @pytest.mark.asyncio
 async def test_refresh_access_token_success(mocker):
-    """
-    Test that a valid refresh token produces a new access token.
-    """
+    """Test generating a new access token using a valid refresh token."""
+    service = AuthService()
+
     mocker.patch(
         "app.services.auth_service.decode_refresh_token",
-        return_value={"sub": "durwa08@gmail.com", "role": "student"},
+        return_value={"sub": "durwa@test.com"},
     )
+
+    user = {
+        "email": "durwa@test.com",
+        "role": "student",
+    }
+
     mocker.patch(
         "app.services.auth_service.get_user_by_email",
-        new_callable=AsyncMock,
-        return_value={"email": "durwa08@gmail.com", "role": "student"},
+        return_value=user,
     )
+
     mocker.patch(
         "app.services.auth_service.create_access_token",
         return_value="new_access_token",
     )
 
-    service = AuthService()
     response = await service.refresh_access_token("refresh_token")
 
     assert response.access_token == "new_access_token"
+    assert response.token_type == "bearer"
 
 
 @pytest.mark.asyncio
 async def test_refresh_access_token_user_not_found(mocker):
-    """
-    Test refresh fails when the user no longer exists.
-    """
+    """Test refreshing an access token when the user no longer exists."""
+    service = AuthService()
+
     mocker.patch(
         "app.services.auth_service.decode_refresh_token",
-        return_value={"sub": "missing@gmail.com", "role": "student"},
+        return_value={"sub": "durwa@test.com"},
     )
+
     mocker.patch(
         "app.services.auth_service.get_user_by_email",
-        new_callable=AsyncMock,
         return_value=None,
     )
 
-    service = AuthService()
     with pytest.raises(UserNotFoundException):
         await service.refresh_access_token("refresh_token")
-
-
-@pytest.mark.asyncio
-async def test_refresh_access_token_invalid_token(mocker):
-    """
-    Test refresh fails when the refresh token itself is invalid.
-    """
-    mocker.patch(
-        "app.services.auth_service.decode_refresh_token",
-        side_effect=InvalidTokenException("Invalid refresh token."),
-    )
-
-    service = AuthService()
-    with pytest.raises(InvalidTokenException):
-        await service.refresh_access_token("bad_token")

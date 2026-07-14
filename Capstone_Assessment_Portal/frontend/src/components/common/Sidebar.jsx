@@ -4,12 +4,68 @@ import {
   FaClipboardList,
   FaQuestionCircle,
   FaChartBar,
+  FaUserGraduate,
+  FaPlayCircle,
+  FaUser,
 } from "react-icons/fa";
 
 import { NavLink } from "react-router-dom";
 import "../../styles/sidebar.css";
 
-function Sidebar() {
+function Sidebar({ role = "admin" }) {
+  const adminMenu = [
+    {
+      label: "Dashboard",
+      path: "/admin",
+      icon: <FaChartPie />,
+    },
+    {
+      label: "Categories",
+      path: "/admin/categories",
+      icon: <FaFolderOpen />,
+    },
+    {
+      label: "Quizzes",
+      path: "/admin/quizzes",
+      icon: <FaClipboardList />,
+    },
+    {
+      label: "Questions",
+      path: "/admin/questions",
+      icon: <FaQuestionCircle />,
+    },
+    {
+      label: "Results",
+      path: "/admin/results",
+      icon: <FaChartBar />,
+    },
+  ];
+
+  const studentMenu = [
+    {
+      label: "Dashboard",
+      path: "/student",
+      icon: <FaUserGraduate />,
+    },
+    {
+      label: "Browse Quizzes",
+      path: "/student/quizzes",
+      icon: <FaPlayCircle />,
+    },
+    {
+      label: "My Results",
+      path: "/student/results",
+      icon: <FaChartBar />,
+    },
+    {
+      label: "Profile",
+      path: "/student/profile",
+      icon: <FaUser />,
+    },
+  ];
+
+  const menuItems = role === "admin" ? adminMenu : studentMenu;
+
   return (
     <aside className="sidebar">
       <div>
@@ -20,7 +76,9 @@ function Sidebar() {
 
           <div>
             <h2>Assessment</h2>
-            <span>Admin Portal</span>
+            <span>
+              {role === "admin" ? "Admin Portal" : "Student Portal"}
+            </span>
           </div>
         </div>
 
@@ -29,66 +87,22 @@ function Sidebar() {
         </div>
 
         <nav>
-          <NavLink
-            to="/admin"
-            end
-            className={({ isActive }) =>
-              isActive ? "menu-item active" : "menu-item"
-            }
-          >
-            <span className="menu-icon">
-              <FaChartPie />
-            </span>
-            Dashboard
-          </NavLink>
+          {menuItems.map((item) => (
+            <NavLink
+              key={item.path}
+              to={item.path}
+              end={item.path === "/admin" || item.path === "/student"}
+              className={({ isActive }) =>
+                isActive ? "menu-item active" : "menu-item"
+              }
+            >
+              <span className="menu-icon">
+                {item.icon}
+              </span>
 
-          <NavLink
-            to="/admin/categories"
-            className={({ isActive }) =>
-              isActive ? "menu-item active" : "menu-item"
-            }
-          >
-            <span className="menu-icon">
-              <FaFolderOpen />
-            </span>
-            Categories
-          </NavLink>
-
-          <NavLink
-            to="/admin/quizzes"
-            className={({ isActive }) =>
-              isActive ? "menu-item active" : "menu-item"
-            }
-          >
-            <span className="menu-icon">
-              <FaClipboardList />
-            </span>
-            Quizzes
-          </NavLink>
-
-          <NavLink
-            to="/admin/questions"
-            className={({ isActive }) =>
-              isActive ? "menu-item active" : "menu-item"
-            }
-          >
-            <span className="menu-icon">
-              <FaQuestionCircle />
-            </span>
-            Questions
-          </NavLink>
-
-          <NavLink
-            to="/admin/results"
-            className={({ isActive }) =>
-              isActive ? "menu-item active" : "menu-item"
-            }
-          >
-            <span className="menu-icon">
-              <FaChartBar />
-            </span>
-            Results
-          </NavLink>
+              {item.label}
+            </NavLink>
+          ))}
         </nav>
       </div>
 

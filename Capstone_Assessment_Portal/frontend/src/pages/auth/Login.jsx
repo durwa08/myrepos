@@ -1,15 +1,40 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 
-import useAuth from "../hooks/useAuth";
-import { checkEmail } from "../services/authService";
-import { getAccessToken, getRole } from "../utils/storage";
+import useAuth from "../../hooks/useAuth";
+import { checkEmail } from "../../services/authService";
+import { getAccessToken, getRole } from "../../utils/storage";
+import { toast } from "react-toastify";
 import {
   validateLogin,
   validateRegister,
-} from "../utils/validation";
+} from "../../utils/validation";
 
-import "../styles/login.css";
+import "../../styles/login.css";
+
+/**
+ * Turn an Axios/FastAPI error into a plain, renderable string.
+ *
+ * FastAPI validation errors (422) return `detail` as an array of
+ * objects like {type, loc, msg, input, ctx} rather than a string.
+ * Rendering that array directly in JSX crashes React ("Objects are
+ * not valid as a React child"), so it must be flattened here first.
+ */
+const extractErrorMessage = (error) => {
+  const detail = error.response?.data?.detail;
+
+  if (typeof detail === "string") {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    return detail
+      .map((item) => item?.msg || "Invalid input.")
+      .join(" ");
+  }
+
+  return "Something went wrong.";
+};
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);
@@ -107,15 +132,16 @@ function Login() {
           password: formData.password,
         });
 
-        alert("Registration Successful. Please Login.");
+        toast.success("Registration successful. Please login.");
 
         setIsLogin(true);
         resetForm();
       }
     } catch (error) {
-      setApiError(
-        error.response?.data?.detail || "Something went wrong."
-      );
+      const message = extractErrorMessage(error);
+
+      setApiError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }

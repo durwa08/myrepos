@@ -1,18 +1,19 @@
 import { useEffect, useState } from "react";
-import AdminLayout from "../layouts/AdminLayout";
+import AdminLayout from "../../layouts/AdminLayout";
 
 import {
   getQuestionsByQuiz,
   createQuestion,
   updateQuestion,
   deleteQuestion,
-} from "../services/questionService";
+} from "../../services/questionService";
 
-import { getQuizzes } from "../services/quizService";
+import { getQuizzes } from "../../services/quizService";
 
-import QuestionTable from "../components/question/QuestionTable";
+import QuestionTable from "../../components/question/QuestionTable";
+import { toast } from "react-toastify";
 
-import "../styles/question.css";
+import "../../styles/question.css";
 
 function Questions() {
   const [questions, setQuestions] = useState([]);
@@ -38,14 +39,19 @@ function Questions() {
     tags: "",
   });
 
-  // 1. Single source of truth for loading initial quizzes
+  /**
+   * Load the initial list of quizzes on mount and select the first
+   * one by default. This is the single source of truth for the
+   * initial quiz list; question loading is handled separately based
+   * on the selected quiz.
+   */
   useEffect(() => {
     let isMounted = true;
 
     const fetchInitialData = async () => {
       try {
         const data = await getQuizzes();
-        
+
         if (!isMounted) return;
         setQuizzes(data);
 
@@ -57,8 +63,12 @@ function Questions() {
         setError("");
       } catch (error) {
         if (!isMounted) return;
-        console.error(error);
-        setError(error.response?.data?.detail || "Unable to load quizzes.");
+        const message =
+          error.response?.data?.detail ||
+          "Unable to load quizzes.";
+
+        setError(message);
+        toast.error(message);
         setLoading(false);
       }
     };
@@ -67,25 +77,31 @@ function Questions() {
     return () => { isMounted = false; };
   }, []);
 
-  // 2. Fetch questions whenever selectedQuiz changes
+  /**
+   * Fetch the question list whenever the selected quiz changes.
+   */
   useEffect(() => {
     if (!selectedQuiz) return;
-    
+
     let isMounted = true;
 
     const fetchQuestions = async () => {
       try {
         setLoading(true);
         const data = await getQuestionsByQuiz(selectedQuiz);
-        
+
         if (!isMounted) return;
         setQuestions(data);
         setError("");
       } catch (error) {
         if (!isMounted) return;
-        console.error(error);
         setQuestions([]);
-        setError(error.response?.data?.detail || "Unable to load questions.");
+        const message =
+          error.response?.data?.detail ||
+          "Unable to load questions.";
+
+        setError(message);
+        toast.error(message);
       } finally {
         if (isMounted) setLoading(false);
       }
@@ -95,6 +111,10 @@ function Questions() {
     return () => { isMounted = false; };
   }, [selectedQuiz]);
 
+  /**
+   * Re-fetch the question list for a given quiz on demand, used
+   * after a create, update, or delete to keep the table in sync.
+   */
   const forceRefreshQuestions = async (quizId) => {
     if (!quizId) return;
     try {
@@ -103,9 +123,13 @@ function Questions() {
       setQuestions(data);
       setError("");
     } catch (error) {
-      console.error(error);
       setQuestions([]);
-      setError(error.response?.data?.detail || "Unable to load questions.");
+      const message =
+        error.response?.data?.detail ||
+        "Unable to load questions.";
+
+      setError(message);
+      toast.error(message);
     } finally {
       setLoading(false);
     }
@@ -145,7 +169,7 @@ function Questions() {
       question_text: question.question_text,
       question_type: question.question_type,
       options: question.options || ["", "", "", ""],
-      correct_answer_index: 0, 
+      correct_answer_index: 0,
       difficulty: question.difficulty,
       tags: question.tags?.join(", ") || "",
     });
@@ -157,6 +181,10 @@ function Questions() {
     setDeleteModal(true);
   };
 
+  /**
+   * Validate and submit the question form, creating a new question
+   * or updating the one currently being edited.
+   */
   const handleSaveQuestion = async () => {
     if (!formData.question_text.trim()) {
       setError("Question is required.");
@@ -177,8 +205,10 @@ function Questions() {
 
       if (editingQuestion) {
         await updateQuestion(editingQuestion.id, payload);
+        toast.success("Question updated successfully.");
       } else {
         await createQuestion(payload);
+        toast.success("Question created successfully.");
       }
 
       setShowModal(false);
@@ -187,20 +217,34 @@ function Questions() {
 
       await forceRefreshQuestions(selectedQuiz);
     } catch (error) {
-      setError(error.response?.data?.detail || "Unable to save question.");
+      const message =
+        error.response?.data?.detail ||
+        "Unable to save question.";
+
+      setError(message);
+      toast.error(message);
     }
   };
 
+  /**
+   * Delete the currently selected question and refresh the list.
+   */
   const handleDeleteQuestion = async () => {
     try {
       await deleteQuestion(selectedQuestion.id);
+      toast.success("Question deleted successfully.");
 
       setDeleteModal(false);
       setSelectedQuestion(null);
 
       await forceRefreshQuestions(selectedQuiz);
     } catch (error) {
-      setError(error.response?.data?.detail || "Unable to delete question.");
+      const message =
+        error.response?.data?.detail ||
+        "Unable to delete question.";
+
+      setError(message);
+      toast.error(message);
     }
   };
 

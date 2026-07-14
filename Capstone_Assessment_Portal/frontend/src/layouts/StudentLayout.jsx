@@ -1,17 +1,11 @@
-import { useState } from "react";
-import StudentSidebar from "../components/common/StudentSidebar";
+import Sidebar from "../components/common/Sidebar";
 import Header from "../components/common/Header";
 import "../styles/studentLayout.css";
 
 function StudentLayout({ children }) {
-  const [activeMenu, setActiveMenu] = useState("dashboard");
-
   return (
     <div className="student-layout">
-      <StudentSidebar
-        activeMenu={activeMenu}
-        setActiveMenu={setActiveMenu}
-      />
+      <Sidebar role="student" />
 
       <div className="main-content">
         <Header />

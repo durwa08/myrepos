@@ -80,3 +80,19 @@ class SubmitAttemptResponse(BaseModel):
         """Pydantic configuration for datetime JSON serialization."""
 
         json_encoders = {datetime: lambda dt: dt.isoformat()}
+
+
+class AttemptCountResponse(BaseModel):
+    """
+    Response model summarizing how many attempts a student has used
+    on a quiz relative to the maximum allowed.
+
+    Lets the frontend display "Attempts: X / Y" and determine whether
+    to disable the start button before the student clicks anything.
+    """
+
+    quiz_id: str
+    attempts_used: int
+    max_attempts: int
+    attempts_remaining: int
+    exhausted: bool

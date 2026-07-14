@@ -7,8 +7,12 @@ Correct answers are hidden from the student-facing endpoints.
 """
 
 from fastapi import APIRouter, Depends, status
+
+from app.middleware.auth_middleware import (
+    get_current_user,
+    require_admin,
+)
 from app.schemas.common_schema import MessageResponse
-from app.middleware.auth_middleware import get_current_user, require_admin
 from app.schemas.question_schema import (
     QuestionCreateRequest,
     QuestionPublicResponse,
@@ -18,10 +22,15 @@ from app.schemas.question_schema import (
 from app.services.question_service import QuestionService
 
 router = APIRouter(prefix="/questions", tags=["Questions"])
+
 question_service = QuestionService()
 
 
-@router.post("", response_model=QuestionResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "",
+    response_model=QuestionResponse,
+    status_code=status.HTTP_201_CREATED,
+)
 async def create_question(
     request: QuestionCreateRequest,
     current_user: dict = Depends(require_admin),
@@ -31,12 +40,16 @@ async def create_question(
 
     Only administrators are authorized to create questions.
     """
-    result = await question_service.create_question(
-        request, admin_id=current_user["sub"]
+    return await question_service.create_question(
+        request,
+        admin_id=current_user["sub"],
     )
-    return result
 
-@router.get("", response_model=list[QuestionPublicResponse])
+
+@router.get(
+    "",
+    response_model=list[QuestionPublicResponse],
+)
 async def get_all_questions(
     current_user: dict = Depends(get_current_user),
 ):
@@ -46,10 +59,13 @@ async def get_all_questions(
     Accessible to any authenticated user.
     Correct answers are hidden.
     """
-    result = await question_service.get_all_questions()
-    return result
+    return await question_service.get_all_questions()
 
-@router.get("/quiz/{quiz_id}", response_model=list[QuestionPublicResponse])
+
+@router.get(
+    "/quiz/{quiz_id}",
+    response_model=list[QuestionPublicResponse],
+)
 async def get_questions_by_quiz(
     quiz_id: str,
     current_user: dict = Depends(get_current_user),
@@ -57,13 +73,16 @@ async def get_questions_by_quiz(
     """
     Retrieve all questions belonging to a specific quiz.
 
-    Accessible to any authenticated user. Correct answers are hidden.
+    Accessible to any authenticated user.
+    Correct answers are hidden.
     """
-    result = await question_service.get_questions_by_quiz(quiz_id)
-    return result
+    return await question_service.get_questions_by_quiz(quiz_id)
 
 
-@router.get("/{question_id}", response_model=QuestionPublicResponse)
+@router.get(
+    "/{question_id}",
+    response_model=QuestionPublicResponse,
+)
 async def get_question(
     question_id: str,
     current_user: dict = Depends(get_current_user),
@@ -71,13 +90,16 @@ async def get_question(
     """
     Retrieve a single question by its id.
 
-    Accessible to any authenticated user. Correct answer is hidden.
+    Accessible to any authenticated user.
+    Correct answer is hidden.
     """
-    result = await question_service.get_question(question_id)
-    return result
+    return await question_service.get_question(question_id)
 
 
-@router.put("/{question_id}", response_model=QuestionResponse)
+@router.put(
+    "/{question_id}",
+    response_model=QuestionResponse,
+)
 async def update_question(
     question_id: str,
     request: QuestionUpdateRequest,
@@ -88,11 +110,17 @@ async def update_question(
 
     Only administrators are authorized to update questions.
     """
-    result = await question_service.update_question(question_id, request)
-    return result
+    return await question_service.update_question(
+        question_id,
+        request,
+    )
 
 
-@router.delete("/{question_id}", response_model=MessageResponse, status_code=status.HTTP_200_OK)
+@router.delete(
+    "/{question_id}",
+    response_model=MessageResponse,
+    status_code=status.HTTP_200_OK,
+)
 async def delete_question(
     question_id: str,
     current_user: dict = Depends(require_admin),
@@ -102,5 +130,4 @@ async def delete_question(
 
     Only administrators are authorized to delete questions.
     """
-    result = await question_service.delete_question(question_id)
-    return result
+    return await question_service.delete_question(question_id)

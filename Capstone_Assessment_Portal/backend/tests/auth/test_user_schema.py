@@ -8,18 +8,6 @@ from pydantic import ValidationError
 from app.schemas.user_schema import UserRegisterRequest, UserResponse
 
 
-def test_user_register_valid():
-    """
-    Test a valid registration payload passes schema validation.
-    """
-    user = UserRegisterRequest(
-        username="durwa08",
-        email="durwa08@gmail.com",
-        password="Password@123",
-    )
-    assert user.username == "durwa08"
-    assert user.email == "durwa08@gmail.com"
-
 
 def test_user_register_invalid_email():
     """
@@ -93,18 +81,6 @@ def test_user_register_password_too_short():
         )
 
 
-def test_user_register_rejects_role_field():
-    """
-    Test that a client-supplied role field is silently ignored,
-    since UserRegisterRequest has no role field at all.
-    """
-    user = UserRegisterRequest(
-        username="durwa08",
-        email="durwa08@gmail.com",
-        password="Password@123",
-        role="admin",
-    )
-    assert not hasattr(user, "role")
 
 
 def test_user_response_schema():

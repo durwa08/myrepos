@@ -1,3 +1,5 @@
+import base64
+import binascii
 import re
 
 from pydantic import BaseModel, EmailStr, Field, field_validator
@@ -22,9 +24,26 @@ class UserRegisterRequest(BaseModel):
         """
         Ensure the password has at least 8 characters, one uppercase
         letter, one digit, and one special character.
+
+        The frontend sends the password Base64-encoded (see
+        authService.js), so it must be decoded here before checking
+        strength - checking the raw encoded string against the
+        pattern would (almost) always fail, since Base64 output never
+        contains punctuation like !@#$%^&* etc.
+
+        The original (still encoded) value is returned unchanged, so
+        downstream decoding in AuthService continues to work exactly
+        as before.
         """
-        if not PASSWORD_PATTERN.match(value):
+        try:
+            decoded_bytes = base64.b64decode(value, validate=True)
+            decoded_password = decoded_bytes.decode("utf-8")
+        except (binascii.Error, UnicodeDecodeError, ValueError) as exc:
+            raise ValueError(INVALID_PASSWORD_MESSAGE) from exc
+
+        if not PASSWORD_PATTERN.match(decoded_password):
             raise ValueError(INVALID_PASSWORD_MESSAGE)
+
         return value
 
 

@@ -1,7 +1,19 @@
+/**
+ * ==========================================================================
+ * CATEGORY VIEW LAYOUT STYLES
+ * ==========================================================================
+ */
+
+/**
+ * Main outer page section padding wrapper structure.
+ */
 .category-page {
   padding: 10px;
 }
 
+/**
+ * Top contextual title area positioning header layouts dynamically.
+ */
 .category-header {
   display: flex;
   justify-content: space-between;
@@ -9,29 +21,35 @@
   margin-bottom: 30px;
 }
 
+/**
+ * Standard trigger buttons configuring new instance creation entries.
+ */
 .add-category-btn {
   display: flex;
   align-items: center;
   gap: 8px;
-
   background: #2563eb;
   color: white;
   border: none;
   border-radius: 8px;
-
   padding: 12px 22px;
   font-size: 15px;
   font-weight: 500;
-
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
+/**
+ * Hover transition transformations applied to addition interface mechanisms.
+ */
 .add-category-btn:hover {
   background: #1d4ed8;
   transform: translateY(-2px);
 }
 
+/**
+ * Main grid presentation element housing target data rows contextually.
+ */
 .category-table {
   width: 100%;
   border-collapse: collapse;
@@ -41,6 +59,9 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
+/**
+ * Header columns locking uniform primary focus items.
+ */
 .category-table th {
   background: #2563eb;
   color: white;
@@ -49,15 +70,24 @@
   font-weight: 600;
 }
 
+/**
+ * Structural table rows parsing data values cleanly.
+ */
 .category-table td {
   padding: 16px;
   border-bottom: 1px solid #eee;
 }
 
+/**
+ * Visual background highlight indicators mapped to horizontal row tracing.
+ */
 .category-table tbody tr:hover {
   background: #f8fbff;
 }
 
+/**
+ * Blank fallback screen indicators rendering when item indexes evaluate to zero.
+ */
 .empty-state {
   background: white;
   padding: 50px;
@@ -66,18 +96,22 @@
   box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
 }
 
+/**
+ * Backdrop sheet component anchoring absolute view positioning overlays.
+ */
 .modal-overlay {
   position: fixed;
   inset: 0;
   background: rgba(0, 0, 0, 0.45);
-
   display: flex;
   justify-content: center;
   align-items: center;
-
   z-index: 1000;
 }
 
+/**
+ * Dedicated context canvas window managing create or modify forms.
+ */
 .category-modal {
   width: 420px;
   background: white;
@@ -86,114 +120,160 @@
   animation: popup 0.25s ease;
 }
 
+/**
+ * Typography parameters governing popup main identity scopes.
+ */
 .category-modal h2 {
   margin-bottom: 20px;
 }
 
+/**
+ * Form element properties capturing custom user data attributes uniformly.
+ */
 .category-modal input {
   width: 100%;
   padding: 12px;
   margin-bottom: 15px;
-
   border: 1px solid #d1d5db;
   border-radius: 8px;
   outline: none;
   font-size: 15px;
 }
 
+/**
+ * Accent outline modifications showing field structural focus alterations.
+ */
 .category-modal input:focus {
   border-color: #2563eb;
 }
 
+/**
+ * Alert text strings drawing dynamic validation failures.
+ */
 .error-message {
   color: #dc2626;
   font-size: 14px;
   margin-bottom: 15px;
 }
 
+/**
+ * Horizontal block alignment grouping structural footer actions.
+ */
 .modal-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 12px;
 }
 
+/**
+ * Shared layout configurations defining global dialog action buttons.
+ */
 .save-btn,
 .cancel-btn {
   border: none;
   border-radius: 8px;
-
   padding: 10px 20px;
-
   color: white;
   cursor: pointer;
-
   transition: all 0.3s ease;
 }
 
+/**
+ * Affirmative completion buttons handling commit requests.
+ */
 .save-btn {
   background: #2563eb;
 }
 
+/**
+ * State modifications shifting primary button tones darker.
+ */
 .save-btn:hover {
   background: #1d4ed8;
 }
 
+/**
+ * Destructive exit buttons closing operational pathways.
+ */
 .cancel-btn {
   background: #ef4444;
 }
 
+/**
+ * Hover transition responses for termination actions.
+ */
 .cancel-btn:hover {
   background: #dc2626;
 }
 
+/**
+ * Segment structural spaces framing interactive column cells.
+ */
 .action-buttons {
   display: flex;
   gap: 10px;
 }
 
+/**
+ * General properties establishing layout metrics for internal table row items.
+ */
 .edit-btn,
 .delete-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
   border: none;
   border-radius: 6px;
-
   padding: 8px 14px;
-
   color: white;
   font-size: 14px;
   font-weight: 500;
-
   cursor: pointer;
   transition: all 0.3s ease;
 }
 
+/**
+ * Structural modifiers handling modification pathways.
+ */
 .edit-btn {
   background: #2563eb;
 }
 
+/**
+ * Motion alterations shifting primary items up on point over events.
+ */
 .edit-btn:hover {
   background: #1d4ed8;
   transform: translateY(-2px);
 }
 
+/**
+ * Visual background state flagging item purge systems.
+ */
 .delete-btn {
   background: #dc2626;
 }
 
+/**
+ * Elevation shifts for purge interaction processes.
+ */
 .delete-btn:hover {
   background: #b91c1c;
   transform: translateY(-2px);
 }
 
+/**
+ * Fixed spacing guidelines handling integrated vector graphic metrics.
+ */
 .edit-btn svg,
 .delete-btn svg {
   font-size: 15px;
 }
 
+/**
+ * Confirmation framework layout panels checking item structural drops.
+ */
 .delete-modal {
   width: 420px;
   background: white;
@@ -203,28 +283,134 @@
   animation: popup 0.25s ease;
 }
 
+/**
+ * Structural text dimensions positioning critical alert titles.
+ */
 .delete-modal h2 {
   margin-bottom: 15px;
 }
 
+/**
+ * Informational text layers clarifying ongoing elimination parameters.
+ */
 .delete-modal p {
   color: #555;
   margin-bottom: 25px;
   font-size: 15px;
 }
 
+/**
+ * High contrast alert highlighting targeting variable string tags.
+ */
 .delete-modal strong {
   color: #dc2626;
 }
 
+/**
+ * Standard scaling keyframe rules handling smooth container appearances.
+ */
 @keyframes popup {
   from {
     opacity: 0;
     transform: scale(0.95);
   }
-
   to {
     opacity: 1;
     transform: scale(1);
   }
+}
+
+/**
+ * ==========================================================================
+ * PAGINATION CONTROL SYSTEM STYLES
+ * ==========================================================================
+ */
+
+/**
+ * Flex layout container wrapper centering pagination buttons 
+ * and setting a structured drop shadow border radius foundation.
+ */
+.pagination-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 25px;
+  background: white;
+  padding: 14px 24px;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.04);
+}
+
+/**
+ * Functional system interaction rules governing structural Next/Prev navigation selectors.
+ */
+.pagination-btn {
+  background: #f3f4f6;
+  color: #1f2937;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/**
+ * Hover transition rule selectors ensuring active functional state shifts occur dynamically.
+ */
+.pagination-btn:hover:not(:disabled) {
+  background: #e5e7eb;
+}
+
+/**
+ * Grayed disabled styling modifier tracking state limits when boundaries are crossed.
+ */
+.pagination-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/**
+ * Flex structural block mapping page selection counts uniformly.
+ */
+.pagination-pages-list {
+  display: flex;
+  gap: 6px;
+}
+
+/**
+ * Grid/Box dimension attributes enforcing consistent layouts for active sequential elements.
+ */
+.pagination-page-number {
+  background: transparent;
+  color: #4b5563;
+  border: 1px solid #e5e7eb;
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+/**
+ * Visual background state shifting when secondary items are pointed over.
+ */
+.pagination-page-number:hover {
+  background: #f9fafb;
+  border-color: #d1d5db;
+}
+
+/**
+ * Active element context highlighting matching the selected index identifier tracker layout.
+ */
+.pagination-page-number.active {
+  background: #2563eb;
+  color: white;
+  border-color: #2563eb;
 }

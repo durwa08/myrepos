@@ -23,7 +23,7 @@ function Header() {
 
       <div className="header-left">
         <h2>Assessment Portal</h2>
-        <p>Admin Dashboard</p>
+        <p>Workspace</p>
       </div>
 
       <div className="header-right">
