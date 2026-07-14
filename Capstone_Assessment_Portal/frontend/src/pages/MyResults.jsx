@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
 import StudentLayout from "../layouts/StudentLayout";
@@ -16,6 +16,9 @@ function MyResults() {
   const [categoryMap, setCategoryMap] = useState({});
   const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(true);
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage] = useState(5);
 
   useEffect(() => {
     async function loadResults() {
@@ -75,12 +78,37 @@ function MyResults() {
     loadResults();
   }, []);
 
+  const totalPages = Math.ceil(results.length / itemsPerPage);
+  const indexOfFirstItem = (currentPage - 1) * itemsPerPage;
+
+  const paginatedResults = useMemo(() => {
+    const indexOfLastItem = currentPage * itemsPerPage;
+    return results.slice(indexOfFirstItem, indexOfLastItem);
+  }, [results, currentPage, itemsPerPage, indexOfFirstItem]);
+
+  const handlePageChange = (pageNumber) => {
+    if (pageNumber >= 1 && pageNumber <= totalPages) {
+      setCurrentPage(pageNumber);
+    }
+  };
+
   return (
     <StudentLayout>
       <div className="my-results">
         <div className="page-header">
-          <h1>My Results</h1>
-          <p>View all your completed assessments.</p>
+          <div className="page-header-top">
+            <div>
+              <h1>My Results</h1>
+              <p>View all your completed assessments.</p>
+            </div>
+
+            <button
+              className="dashboard-redirect-btn"
+              onClick={() => navigate("/student")}
+            >
+              ← Back to Dashboard
+            </button>
+          </div>
         </div>
 
         {Object.keys(summary).length > 0 && (
@@ -117,77 +145,114 @@ function MyResults() {
         ) : results.length === 0 ? (
           <h3>No assessment attempts found.</h3>
         ) : (
-          <div className="results-list">
-            {results.map((result) => (
-              <div
-                key={result.id}
-                className="result-card"
-              >
-                <div>
-                  <h3>
-                    {quizMap[result.quiz_id]?.title ||
-                      "Unknown Quiz"}
-                  </h3>
+          <>
+            <div className="results-list">
+              {paginatedResults.map((result) => (
+                <div
+                  key={result.id}
+                  className="result-card"
+                >
+                  <div>
+                    <h3>
+                      {quizMap[result.quiz_id]?.title ||
+                        "Unknown Quiz"}
+                    </h3>
 
-                  <p>
-                    <strong>Category :</strong>{" "}
-                    {categoryMap[
-                      quizMap[result.quiz_id]
-                        ?.category_id
-                    ] || "Unknown"}
-                  </p>
+                    <p>
+                      <strong>Category :</strong>{" "}
+                      {categoryMap[
+                        quizMap[result.quiz_id]
+                          ?.category_id
+                      ] || "Unknown"}
+                    </p>
 
-                  <p>
-                    <strong>Attempt :</strong> #
-                    {result.attempt_number}
-                  </p>
+                    <p>
+                      <strong>Attempt :</strong> #
+                      {result.attempt_number}
+                    </p>
 
-                  <p>
-                    <strong>Score :</strong>{" "}
-                    {result.correct_answers}/
-                    {result.total_questions}
-                  </p>
+                    <p>
+                      <strong>Score :</strong>{" "}
+                      {result.correct_answers}/
+                      {result.total_questions}
+                    </p>
 
-                  <p>
-                    <strong>Percentage :</strong>{" "}
-                    {result.percentage}%
-                  </p>
+                    <p>
+                      <strong>Percentage :</strong>{" "}
+                      {result.percentage}%
+                    </p>
 
-                  <p>
-                    <strong>Status :</strong>{" "}
-                    <span
-                      className={
-                        result.passed
-                          ? "passed"
-                          : "failed"
-                      }
-                    >
-                      {result.passed
-                        ? "Passed"
-                        : "Failed"}
-                    </span>
-                  </p>
+                    <p>
+                      <strong>Status :</strong>{" "}
+                      <span
+                        className={
+                          result.passed
+                            ? "passed"
+                            : "failed"
+                        }
+                      >
+                        {result.passed
+                          ? "Passed"
+                          : "Failed"}
+                      </span>
+                    </p>
 
-                  <p>
-                    <strong>Submitted :</strong>{" "}
-                    {new Date(
-                      result.submitted_at
-                    ).toLocaleString()}
-                  </p>
+                    <p>
+                      <strong>Submitted :</strong>{" "}
+                      {new Date(
+                        result.submitted_at
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+
+                  <button
+                    onClick={() =>
+                      navigate(
+                        `/student/results/${result.id}`
+                      )
+                    }
+                  >
+                    View Result
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {totalPages > 1 && (
+              <div className="pagination-container">
+                <button
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(currentPage - 1)}
+                  disabled={currentPage === 1}
+                >
+                  Previous
+                </button>
+
+                <div className="pagination-pages-list">
+                  {[...Array(totalPages)].map((_, index) => {
+                    const pageNum = index + 1;
+                    return (
+                      <button
+                        key={pageNum}
+                        className={`pagination-page-number ${currentPage === pageNum ? "active" : ""}`}
+                        onClick={() => handlePageChange(pageNum)}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <button
-                  onClick={() =>
-                    navigate(
-                      `/student/results/${result.id}`
-                    )
-                  }
+                  className="pagination-btn"
+                  onClick={() => handlePageChange(currentPage + 1)}
+                  disabled={currentPage === totalPages}
                 >
-                  View Result
+                  Next
                 </button>
               </div>
-            ))}
-          </div>
+            )}
+          </>
         )}
       </div>
     </StudentLayout>

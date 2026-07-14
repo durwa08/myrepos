@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom"; 
 import AdminLayout from "../layouts/AdminLayout";
 import { FaPlus } from "react-icons/fa";
 import {
@@ -13,7 +12,6 @@ import "../styles/category.css";
 import { toast } from "react-toastify";
 
 function Categories() {
-  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -268,19 +266,6 @@ function Categories() {
                 </button>
               </div>
             )}
-
-            <div className="portal-navigation-footer">
-              <div className="nav-footer-info">
-                <span>Module 2 of 4</span>
-                <p>Categories configured. Ready to set up your specific Quizzes templates?</p>
-              </div>
-              <button 
-                className="portal-next-page-btn"
-                onClick={() => navigate("/admin/quizzes")}
-              >
-                Go to Quizzes Page →
-              </button>
-            </div>
           </>
         )}
       </div>

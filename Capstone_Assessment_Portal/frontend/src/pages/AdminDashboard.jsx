@@ -1,5 +1,4 @@
 import { useEffect, useState, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
 import AdminLayout from "../layouts/AdminLayout";
 import "../styles/adminDashboard.css";
 
@@ -33,7 +32,6 @@ import {
 } from "recharts";
 
 function AdminDashboard() {
-  const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const [categoryCount, setCategoryCount] = useState(0);
   const [quizzes, setQuizzes] = useState([]);
@@ -390,20 +388,6 @@ function AdminDashboard() {
               </div>
             </div>
           )}
-        </div>
-
-        {/* Global Structural Page-to-Page Navigation Footer Module */}
-        <div className="portal-navigation-footer">
-          <div className="nav-footer-info">
-            <span>Module 1 of 4</span>
-            <p>Ready to manage your categories, quizzes, and questions structures?</p>
-          </div>
-          <button 
-            className="portal-next-page-btn"
-            onClick={() => navigate("/admin/categories")}
-          >
-            Go to Categories Page →
-          </button>
         </div>
 
       </div>

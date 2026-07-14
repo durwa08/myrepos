@@ -41,9 +41,23 @@ function Profile() {
           role: response.data.your_data.role,
         });
 
-        const totalAttempts = resultHistory.length;
+        const lookup = {};
 
-        const passed = resultHistory.filter(
+        quizzes.forEach((quiz) => {
+          lookup[quiz.id] = quiz.title;
+        });
+
+        setQuizMap(lookup);
+
+        // Exclude results whose quiz has since been deleted, so they
+        // don't show up as "Unknown Quiz" or skew the stats below.
+        const activeHistory = resultHistory.filter((item) =>
+          Boolean(lookup[item.quiz_id])
+        );
+
+        const totalAttempts = activeHistory.length;
+
+        const passed = activeHistory.filter(
           (item) => item.passed
         ).length;
 
@@ -52,7 +66,7 @@ function Profile() {
         const averageScore =
           totalAttempts > 0
             ? (
-                resultHistory.reduce(
+                activeHistory.reduce(
                   (sum, item) => sum + item.percentage,
                   0
                 ) / totalAttempts
@@ -66,14 +80,7 @@ function Profile() {
           averageScore,
         });
 
-        const lookup = {};
-
-        quizzes.forEach((quiz) => {
-          lookup[quiz.id] = quiz.title;
-        });
-
-        setQuizMap(lookup);
-        setHistory(resultHistory);
+        setHistory(activeHistory);
       } catch (error) {
         console.error("Failed to load profile:", error);
       }

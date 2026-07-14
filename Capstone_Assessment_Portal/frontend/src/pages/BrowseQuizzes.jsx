@@ -6,6 +6,7 @@ import {
   getQuizzes,
   getQuizzesQuestionCounts,
   getActiveAttempt,
+  getAttemptCount,
   startAttempt,
 } from "../services/quizService";
 import "../styles/browseQuizzes.css";
@@ -22,6 +23,7 @@ function BrowseQuizzes() {
   const [questionCounts, setQuestionCounts] = useState({});
   const [loading, setLoading] = useState(true);
   const [activeAttempts, setActiveAttempts] = useState({});
+  const [attemptCounts, setAttemptCounts] = useState({});
 
   useEffect(() => {
     /**
@@ -44,15 +46,23 @@ function BrowseQuizzes() {
           setQuestionCounts(counts);
 
           const activeChecks = {};
+          const attemptCountChecks = {};
           await Promise.all(
             quizData.map(async (quiz) => {
-              const active = await getActiveAttempt(quiz.id);
+              const [active, attemptCount] = await Promise.all([
+                getActiveAttempt(quiz.id),
+                getAttemptCount(quiz.id),
+              ]);
               if (active) {
                 activeChecks[quiz.id] = active;
+              }
+              if (attemptCount) {
+                attemptCountChecks[quiz.id] = attemptCount;
               }
             })
           );
           setActiveAttempts(activeChecks);
+          setAttemptCounts(attemptCountChecks);
         }
       } catch (error) {
         console.error("Failed to load quizzes:", error);
@@ -90,6 +100,10 @@ function BrowseQuizzes() {
    * @param {Object} quiz - The configuration record of the selected quiz.
    */
   const handleStartQuiz = async (quiz) => {
+    if (attemptCounts[quiz.id]?.exhausted && !activeAttempts[quiz.id]) {
+      return;
+    }
+
     try {
       const attempt = await startAttempt(quiz.id);
       navigate(`/student/attempt/${attempt.id}`);
@@ -97,6 +111,13 @@ function BrowseQuizzes() {
       console.error("Failed to start/resume quiz:", error);
     }
   };
+
+  /**
+   * Quizzes that currently have at least one question. Quizzes with
+   * zero questions aren't ready to be attempted yet, so they're
+   * excluded from the browse list entirely.
+   */
+  const visibleQuizzes = quizzes.filter((quiz) => getQuestionCount(quiz.id) > 0);
 
   return (
     <StudentLayout>
@@ -112,52 +133,72 @@ function BrowseQuizzes() {
           </div>
         )}
 
-        {!loading && quizzes.length === 0 && (
+        {!loading && visibleQuizzes.length === 0 && (
           <div className="empty-state">
             <h3>No Quizzes Available</h3>
             <p>Please check back later.</p>
           </div>
         )}
 
-        {!loading && quizzes.length > 0 && (
+        {!loading && visibleQuizzes.length > 0 && (
           <div className="quizzes-container">
-            {quizzes.map((quiz) => (
-              <div key={quiz.id} className="quiz-card">
-                <div className="quiz-card-header">
-                  <div className="quiz-card-category">
-                    {getCategoryName(quiz.category_id)}
-                  </div>
-                  <h3>{quiz.title}</h3>
-                </div>
+            {visibleQuizzes.map((quiz) => {
+              const attemptCount = attemptCounts[quiz.id];
+              const hasActiveAttempt = Boolean(activeAttempts[quiz.id]);
+              const isExhausted = Boolean(attemptCount?.exhausted) && !hasActiveAttempt;
 
-                <p className="quiz-card-description">
-                  {quiz.description || "No description available."}
-                </p>
-
-                <div className="quiz-card-meta">
-                  <div className="meta-item">
-                    <div className="meta-item-label">Time Limit</div>
-                    <div className="meta-item-value">
-                      {quiz.time_limit_minutes} mins
+              return (
+                <div key={quiz.id} className="quiz-card">
+                  <div className="quiz-card-header">
+                    <div className="quiz-card-category">
+                      {getCategoryName(quiz.category_id)}
                     </div>
+                    <h3>{quiz.title}</h3>
                   </div>
 
-                  <div className="meta-item">
-                    <div className="meta-item-label">Questions</div>
-                    <div className="meta-item-value">
-                      {getQuestionCount(quiz.id)}
+                  <p className="quiz-card-description">
+                    {quiz.description || "No description available."}
+                  </p>
+
+                  <div className="quiz-card-meta">
+                    <div className="meta-item">
+                      <div className="meta-item-label">Time Limit</div>
+                      <div className="meta-item-value">
+                        {quiz.time_limit_minutes} mins
+                      </div>
                     </div>
-                  </div>
-                </div>
 
-                <button 
-                  className="start-quiz-btn"
-                  onClick={() => handleStartQuiz(quiz)}
-                >
-                  {activeAttempts[quiz.id] ? "Continue Quiz" : "Start Quiz"}
-                </button>
-              </div>
-            ))}
+                    <div className="meta-item">
+                      <div className="meta-item-label">Questions</div>
+                      <div className="meta-item-value">
+                        {getQuestionCount(quiz.id)}
+                      </div>
+                    </div>
+
+                    {attemptCount && (
+                      <div className="meta-item">
+                        <div className="meta-item-label">Attempts</div>
+                        <div className="meta-item-value">
+                          {attemptCount.attempts_used} / {attemptCount.max_attempts}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  <button
+                    className="start-quiz-btn"
+                    onClick={() => handleStartQuiz(quiz)}
+                    disabled={isExhausted}
+                  >
+                    {isExhausted
+                      ? "Attempts Exhausted"
+                      : hasActiveAttempt
+                      ? "Continue Quiz"
+                      : "Start Quiz"}
+                  </button>
+                </div>
+              );
+            })}
           </div>
         )}
       </div>

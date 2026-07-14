@@ -63,3 +63,13 @@ export const getActiveAttempt = async (quizId) => {
   const response = await api.get(`/attempts/active/${quizId}`);
   return response.data;
 };
+
+export const getAttemptCount = async (quizId) => {
+  try {
+    const response = await api.get(`/attempts/count/${quizId}`);
+    return response.data;
+  } catch (error) {
+    console.error(`Failed to fetch attempt count for quiz ${quizId}:`, error);
+    return null;
+  }
+};

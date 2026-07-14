@@ -46,30 +46,39 @@ function ResultsDashboard() {
   }, []);
 
   /**
+   * Results whose quiz still exists. Results tied to a deleted quiz
+   * (no matching entry in quizTitleById) are excluded from the entire
+   * dashboard - table, stats, chart, and insights.
+   */
+  const activeResults = useMemo(() => {
+    return results.filter((item) => Boolean(quizTitleById[item.quiz_id]));
+  }, [results, quizTitleById]);
+
+  /**
    * Filter results based on the status filter using useMemo.
    * This avoids cascading renders by computing the filtered list
    * without setState.
    */
   const filteredResults = useMemo(() => {
-    if (statusFilter === "all") return results;
-    return results.filter((item) =>
+    if (statusFilter === "all") return activeResults;
+    return activeResults.filter((item) =>
       statusFilter === "pass" ? item.passed : !item.passed
     );
-  }, [statusFilter, results]);
+  }, [statusFilter, activeResults]);
 
   /**
    * Calculate statistics using useMemo
    */
   const stats = useMemo(() => {
-    const totalAttempts = results.length;
-    const passedAttempts = results.filter((r) => r.passed).length;
-    const failedAttempts = results.filter((r) => !r.passed).length;
+    const totalAttempts = activeResults.length;
+    const passedAttempts = activeResults.filter((r) => r.passed).length;
+    const failedAttempts = activeResults.filter((r) => !r.passed).length;
     const passRate = totalAttempts > 0 ? ((passedAttempts / totalAttempts) * 100).toFixed(1) : 0;
     const avgScore =
       totalAttempts > 0
-        ? (results.reduce((sum, r) => sum + r.percentage, 0) / totalAttempts).toFixed(1)
+        ? (activeResults.reduce((sum, r) => sum + r.percentage, 0) / totalAttempts).toFixed(1)
         : 0;
-    const uniqueStudents = new Set(results.map((r) => r.student_id)).size;
+    const uniqueStudents = new Set(activeResults.map((r) => r.student_id)).size;
 
     return {
       totalAttempts,
@@ -79,7 +88,7 @@ function ResultsDashboard() {
       avgScore,
       uniqueStudents,
     };
-  }, [results]);
+  }, [activeResults]);
 
   /**
    * Derive quick insights from the existing results and quiz title
@@ -91,7 +100,7 @@ function ResultsDashboard() {
    * since there's nothing meaningful to show for them.
    */
   const insights = useMemo(() => {
-    if (results.length === 0) {
+    if (activeResults.length === 0) {
       return {
         uniqueQuizzesAttempted: 0,
         mostActiveStudent: null,
@@ -100,10 +109,10 @@ function ResultsDashboard() {
       };
     }
 
-    const uniqueQuizzesAttempted = new Set(results.map((r) => r.quiz_id)).size;
+    const uniqueQuizzesAttempted = new Set(activeResults.map((r) => r.quiz_id)).size;
 
     const attemptsByStudent = {};
-    results.forEach((r) => {
+    activeResults.forEach((r) => {
       attemptsByStudent[r.student_id] = (attemptsByStudent[r.student_id] || 0) + 1;
     });
     const [mostActiveStudentId, mostActiveCount] = Object.entries(
@@ -111,7 +120,7 @@ function ResultsDashboard() {
     ).sort((a, b) => b[1] - a[1])[0];
 
     const quizStats = {};
-    results.forEach((r) => {
+    activeResults.forEach((r) => {
       if (!quizStats[r.quiz_id]) {
         quizStats[r.quiz_id] = { total: 0, passed: 0 };
       }
@@ -146,7 +155,7 @@ function ResultsDashboard() {
           ? sortedByPassRate[sortedByPassRate.length - 1]
           : null,
     };
-  }, [results, quizTitleById]);
+  }, [activeResults, quizTitleById]);
 
   /**
    * Chart data
@@ -328,7 +337,7 @@ function ResultsDashboard() {
                         <tr key={item.id} className={item.passed ? "row-pass" : "row-fail"}>
                           <td className="row-number">{index + 1}</td>
                           <td className="student-id">{item.student_id}</td>
-                          <td className="quiz-title">{quizTitleById[item.quiz_id] || item.quiz_id}</td>
+                          <td className="quiz-title">{quizTitleById[item.quiz_id]}</td>
                           <td className="attempt">{item.attempt_number}</td>
                           <td className="score">
                             <strong>{item.correct_answers}</strong> / {item.total_questions}

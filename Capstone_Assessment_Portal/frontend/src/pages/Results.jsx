@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 
 import StudentLayout from "../layouts/StudentLayout";
 import { getAttemptResult } from "../services/resultService";
@@ -8,6 +8,7 @@ import "../styles/results.css";
 
 function Results() {
   const { attemptId } = useParams();
+  const navigate = useNavigate();
 
   const [result, setResult] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -131,6 +132,15 @@ function Results() {
               </div>
             );
           })}
+        </div>
+
+        <div className="result-footer">
+          <button
+            className="dashboard-redirect-btn"
+            onClick={() => navigate("/student")}
+          >
+            ← Back to Dashboard
+          </button>
         </div>
       </div>
     </StudentLayout>
