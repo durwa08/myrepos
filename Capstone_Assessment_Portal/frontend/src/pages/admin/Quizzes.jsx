@@ -1,18 +1,18 @@
 import { useEffect, useState } from "react";
-import AdminLayout from "../layouts/AdminLayout";
-import QuizTable from "../components/quiz/QuizTable";
+import AdminLayout from "../../layouts/AdminLayout";
+import QuizTable from "../../components/quiz/QuizTable";
 
 import {
   getQuizzes,
   createQuiz,
   updateQuiz,
   deleteQuiz,
-} from "../services/quizService";
+} from "../../services/quizService";
 
-import { getCategories, createCategory } from "../services/categoryService";
+import { getCategories, createCategory } from "../../services/categoryService";
 import { toast } from "react-toastify";
 
-import "../styles/quiz.css";
+import "../../styles/quiz.css";
 
 /** @type {string[]} */
 const DURATION_PRESETS = ["10", "15", "20", "30", "45", "60", "90", "120"];

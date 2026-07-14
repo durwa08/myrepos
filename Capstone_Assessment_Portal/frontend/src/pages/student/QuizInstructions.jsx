@@ -1,15 +1,15 @@
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import StudentLayout from "../layouts/StudentLayout";
+import StudentLayout from "../../layouts/StudentLayout";
 import {
   getQuizById,
   getCategories,
   startAttempt,
   getActiveAttempt,
-} from "../services/quizService";
+} from "../../services/quizService";
 
-import "../styles/quizInstructions.css";
+import "../../styles/quizInstructions.css";
 
 /**
  * QuizInstructions Component

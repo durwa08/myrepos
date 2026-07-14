@@ -1,19 +1,19 @@
 import { useEffect, useState } from "react";
-import AdminLayout from "../layouts/AdminLayout";
+import AdminLayout from "../../layouts/AdminLayout";
 
 import {
   getQuestionsByQuiz,
   createQuestion,
   updateQuestion,
   deleteQuestion,
-} from "../services/questionService";
+} from "../../services/questionService";
 
-import { getQuizzes } from "../services/quizService";
+import { getQuizzes } from "../../services/quizService";
 
-import QuestionTable from "../components/question/QuestionTable";
+import QuestionTable from "../../components/question/QuestionTable";
 import { toast } from "react-toastify";
 
-import "../styles/question.css";
+import "../../styles/question.css";
 
 function Questions() {
   const [questions, setQuestions] = useState([]);

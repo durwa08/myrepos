@@ -1,16 +1,16 @@
 import { useState } from "react";
 import { Navigate } from "react-router-dom";
 
-import useAuth from "../hooks/useAuth";
-import { checkEmail } from "../services/authService";
-import { getAccessToken, getRole } from "../utils/storage";
+import useAuth from "../../hooks/useAuth";
+import { checkEmail } from "../../services/authService";
+import { getAccessToken, getRole } from "../../utils/storage";
 import { toast } from "react-toastify";
 import {
   validateLogin,
   validateRegister,
-} from "../utils/validation";
+} from "../../utils/validation";
 
-import "../styles/login.css";
+import "../../styles/login.css";
 
 function Login() {
   const [isLogin, setIsLogin] = useState(true);

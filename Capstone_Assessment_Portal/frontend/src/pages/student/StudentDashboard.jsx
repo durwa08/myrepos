@@ -1,12 +1,12 @@
 import { useEffect, useState } from "react";
-import StudentLayout from "../layouts/StudentLayout";
-import WelcomeBanner from "../components/student/WelcomeBanner";
+import StudentLayout from "../../layouts/StudentLayout";
+import WelcomeBanner from "../../components/student/WelcomeBanner";
 import {
   getStudentProfile,
   getQuizzes,
   getResultHistory,
-} from "../services/dashboardService";
-import "../styles/studentDashboard.css";
+} from "../../services/dashboardService";
+import "../../styles/studentDashboard.css";
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 

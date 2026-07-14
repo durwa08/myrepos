@@ -6,19 +6,19 @@ import {
 
 import { useNavigate, useParams } from "react-router-dom";
 
-import StudentLayout from "../layouts/StudentLayout";
-import QuestionCard from "../components/student/QuestionCard";
-import QuestionNavigator from "../components/student/QuestionNavigator";
-import Timer from "../components/student/Timer";
+import StudentLayout from "../../layouts/StudentLayout";
+import QuestionCard from "../../components/student/QuestionCard";
+import QuestionNavigator from "../../components/student/QuestionNavigator";
+import Timer from "../../components/student/Timer";
 import { toast } from "react-toastify";
 
 import {
   getAttempt,
   saveAnswer,
   submitAttempt,
-} from "../services/attemptService";
+} from "../../services/attemptService";
 
-import "../styles/takeQuiz.css";
+import "../../styles/takeQuiz.css";
 
 function TakeQuiz() {
   const { attemptId } = useParams();

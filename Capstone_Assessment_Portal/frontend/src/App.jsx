@@ -1,20 +1,20 @@
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
-import Login from "./pages/Login";
+import Login from "./pages/auth/Login";
 
-import AdminDashboard from "./pages/AdminDashboard";
-import Categories from "./pages/Categories";
-import Quizzes from "./pages/Quizzes";
-import Questions from "./pages/Questions";
-import ResultsDashboard from "./pages/ResultsDashboard";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import Categories from "./pages/admin/Categories";
+import Quizzes from "./pages/admin/Quizzes";
+import Questions from "./pages/admin/Questions";
+import ResultsDashboard from "./pages/admin/ResultsDashboard";
 
-import StudentDashboard from "./pages/StudentDashboard";
-import BrowseQuizzes from "./pages/BrowseQuizzes";
-import QuizInstructions from "./pages/QuizInstructions";
-import TakeQuiz from "./pages/TakeQuiz";
-import Results from "./pages/Results";
-import MyResults from "./pages/MyResults";
-import Profile from "./pages/Profile";
+import StudentDashboard from "./pages/student/StudentDashboard";
+import BrowseQuizzes from "./pages/student/BrowseQuizzes";
+import QuizInstructions from "./pages/student/QuizInstructions";
+import TakeQuiz from "./pages/student/TakeQuiz";
+import Results from "./pages/student/Results";
+import MyResults from "./pages/student/MyResults";
+import Profile from "./pages/student/Profile";
 
 import ProtectedRoute from "./routes/ProtectedRoute";
 

@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
-import StudentLayout from "../layouts/StudentLayout";
-import api from "../services/api";
-import { getStudentResultHistory } from "../services/resultService";
-import { getQuizzes } from "../services/quizService";
+import StudentLayout from "../../layouts/StudentLayout";
+import api from "../../services/api";
+import { getStudentResultHistory } from "../../services/resultService";
+import { getQuizzes } from "../../services/quizService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import "../styles/profile.css";
+import "../../styles/profile.css";
 
 function Profile() {
   const [profile, setProfile] = useState(null);

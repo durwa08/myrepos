@@ -1,11 +1,11 @@
 import { useEffect, useState, useMemo } from "react";
-import AdminLayout from "../layouts/AdminLayout";
-import "../styles/adminDashboard.css";
+import AdminLayout from "../../layouts/AdminLayout";
+import "../../styles/adminDashboard.css";
 
-import { getCategories } from "../services/categoryService";
-import { getQuizzes } from "../services/quizService";
-import { getQuestions } from "../services/questionService";
-import { getAdminDashboardResults } from "../services/resultService";
+import { getCategories } from "../../services/categoryService";
+import { getQuizzes } from "../../services/quizService";
+import { getQuestions } from "../../services/questionService";
+import { getAdminDashboardResults } from "../../services/resultService";
 
 import {
   FaFolderOpen,

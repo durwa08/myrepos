@@ -1,10 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 
-import StudentLayout from "../layouts/StudentLayout";
-import { getAttemptResult } from "../services/resultService";
+import StudentLayout from "../../layouts/StudentLayout";
+import { getAttemptResult } from "../../services/resultService";
 
-import "../styles/results.css";
+import "../../styles/results.css";
 
 function Results() {
   const { attemptId } = useParams();

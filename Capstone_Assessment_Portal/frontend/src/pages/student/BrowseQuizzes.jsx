@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import StudentLayout from "../layouts/StudentLayout";
+import StudentLayout from "../../layouts/StudentLayout";
 import {
   getCategories,
   getQuizzes,
@@ -8,8 +8,8 @@ import {
   getActiveAttempt,
   getAttemptCount,
   startAttempt,
-} from "../services/quizService";
-import "../styles/browseQuizzes.css";
+} from "../../services/quizService";
+import "../../styles/browseQuizzes.css";
 
 /**
  * BrowseQuizzes Component

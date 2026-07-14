@@ -1,12 +1,12 @@
 import { useEffect, useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 
-import StudentLayout from "../layouts/StudentLayout";
-import { getStudentResultHistory } from "../services/resultService";
-import { getQuizzes } from "../services/quizService";
-import { getCategories } from "../services/categoryService";
+import StudentLayout from "../../layouts/StudentLayout";
+import { getStudentResultHistory } from "../../services/resultService";
+import { getQuizzes } from "../../services/quizService";
+import { getCategories } from "../../services/categoryService";
 
-import "../styles/myResults.css";
+import "../../styles/myResults.css";
 
 function MyResults() {
   const navigate = useNavigate();

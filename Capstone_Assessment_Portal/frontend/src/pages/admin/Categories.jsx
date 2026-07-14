@@ -1,14 +1,14 @@
 import { useEffect, useState, useMemo } from "react";
-import AdminLayout from "../layouts/AdminLayout";
+import AdminLayout from "../../layouts/AdminLayout";
 import { FaPlus } from "react-icons/fa";
 import {
   getCategories,
   createCategory,
   updateCategory,
   deleteCategory,
-} from "../services/categoryService";
-import CategoryTable from "../components/category/CategoryTable";
-import "../styles/category.css";
+} from "../../services/categoryService";
+import CategoryTable from "../../components/category/CategoryTable";
+import "../../styles/category.css";
 import { toast } from "react-toastify";
 
 function Categories() {

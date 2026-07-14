@@ -1,9 +1,9 @@
 import { useEffect, useState, useMemo } from "react";
-import AdminLayout from "../layouts/AdminLayout";
-import { getAdminDashboardResults } from "../services/resultService";
-import { getQuizzes } from "../services/quizService";
+import AdminLayout from "../../layouts/AdminLayout";
+import { getAdminDashboardResults } from "../../services/resultService";
+import { getQuizzes } from "../../services/quizService";
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
-import "../styles/results.css";
+import "../../styles/results.css";
 
 function ResultsDashboard() {
   const [results, setResults] = useState([]);
