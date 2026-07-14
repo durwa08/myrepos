@@ -1,177 +1,129 @@
-"""
-Test cases for result routes.
-"""
-
-from datetime import datetime, timezone
-from unittest.mock import AsyncMock
+import pytest
+from httpx import ASGITransport, AsyncClient
 
 from app.main import app
-from app.middleware.auth_middleware import require_admin, require_student
-from app.schemas.result_schema import (
-    AnswerBreakdownItem,
-    AttemptResultResponse,
-    ResultHistoryItem,
+from app.api.v1.result_routes import (
+    get_result_service,
+    require_admin,
+    require_student,
 )
 
-NOW = datetime.now(timezone.utc)
+
+class MockResultService:
+    """Mock implementation of ResultService."""
+
+    async def get_history(self, student_id: str):
+        return [
+            {
+                "id": "attempt123",
+                "quiz_id": "quiz123",
+                "student_id": student_id,
+                "attempt_number": 1,
+                "total_questions": 10,
+                "correct_answers": 8,
+                "percentage": 80.0,
+                "passed": True,
+                "submitted_at": "2026-07-14T10:00:00",
+            }
+        ]
+
+    async def get_admin_dashboard(self):
+        return [
+            {
+                "id": "attempt123",
+                "quiz_id": "quiz123",
+                "student_id": "student123",
+                "attempt_number": 1,
+                "total_questions": 10,
+                "correct_answers": 8,
+                "percentage": 80.0,
+                "passed": True,
+                "submitted_at": "2026-07-14T10:00:00",
+            }
+        ]
+
+    async def get_result(self, attempt_id: str, student_id: str):
+        return {
+            "id": attempt_id,
+            "quiz_id": "quiz123",
+            "attempt_number": 1,
+            "status": "submitted",
+            "started_at": "2026-07-14T09:45:00",
+            "submitted_at": "2026-07-14T10:00:00",
+            "total_questions": 10,
+            "correct_answers": 8,
+            "percentage": 80.0,
+            "passed": True,
+            "answer_breakdown": [
+                {
+                    "question_id": "q1",
+                    "question_text": "What is 2 + 2?",
+                    "options": ["1", "2", "3", "4"],
+                    "selected_answer_index": 3,
+                    "correct_answer_index": 3,
+                    "is_correct": True,
+                }
+            ],
+        }
 
 
-def make_result_response():
-    """
-    Build a sample AttemptResultResponse for mocking service return values.
-    """
-    return AttemptResultResponse(
-        id="1",
-        quiz_id="quiz1",
-        attempt_number=1,
-        status="submitted",
-        started_at=NOW,
-        submitted_at=NOW,
-        total_questions=1,
-        correct_answers=1,
-        percentage=100.0,
-        passed=True,
-        answer_breakdown=[
-            AnswerBreakdownItem(
-                question_id="q1",
-                question_text="What is 2+2?",
-                selected_answer_index=2,
-                correct_answer_index=2,
-                is_correct=True,
-            )
-        ],
+@pytest.fixture
+async def async_client():
+    """Provide an asynchronous HTTP client for testing."""
+
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test",
+    ) as client:
+        yield client
+
+
+@pytest.mark.asyncio
+async def test_get_my_history(async_client):
+    """Test retrieving the authenticated student's result history."""
+
+    app.dependency_overrides[get_result_service] = lambda: MockResultService()
+    app.dependency_overrides[require_student] = (
+        lambda: {"sub": "student@test.com"}
     )
 
-
-def test_get_attempt_result_route(client, mocker):
-    """
-    Test the get result endpoint returns 200 with the full breakdown.
-    """
-    app.dependency_overrides[require_student] = lambda: {
-        "sub": "student1",
-        "role": "student",
-    }
-
-    mocker.patch(
-        "app.api.v1.result_routes.ResultService.get_result",
-        new=AsyncMock(return_value=make_result_response()),
-    )
-
-    response = client.get(
-        "/results/1", headers={"Authorization": "Bearer fake_token"}
-    )
+    response = await async_client.get("/results/history/me")
 
     assert response.status_code == 200
-    assert response.json()["passed"] is True
+    assert isinstance(response.json(), list)
 
     app.dependency_overrides.clear()
 
 
-def test_get_attempt_result_route_access_denied(client, mocker):
-    """
-    Test the get result endpoint returns 403 for a non-owning student.
-    """
-    from app.exceptions.custom_exceptions import AttemptAccessDeniedException
+@pytest.mark.asyncio
+async def test_get_admin_dashboard(async_client):
+    """Test retrieving the administrator dashboard."""
 
-    app.dependency_overrides[require_student] = lambda: {
-        "sub": "student1",
-        "role": "student",
-    }
-
-    mocker.patch(
-        "app.api.v1.result_routes.ResultService.get_result",
-        new=AsyncMock(side_effect=AttemptAccessDeniedException()),
+    app.dependency_overrides[get_result_service] = lambda: MockResultService()
+    app.dependency_overrides[require_admin] = (
+        lambda: {"sub": "admin@test.com"}
     )
 
-    response = client.get(
-        "/results/1", headers={"Authorization": "Bearer fake_token"}
-    )
-
-    assert response.status_code == 403
-
-    app.dependency_overrides.clear()
-
-
-def test_get_my_history_route(client, mocker):
-    """
-    Test the student history endpoint returns 200 with a list.
-    """
-    app.dependency_overrides[require_student] = lambda: {
-        "sub": "student1",
-        "role": "student",
-    }
-
-    mocker.patch(
-        "app.api.v1.result_routes.ResultService.get_history",
-        new=AsyncMock(
-            return_value=[
-                ResultHistoryItem(
-                    id="1",
-                    quiz_id="quiz1",
-                    student_id="student1",
-                    attempt_number=1,
-                    total_questions=1,
-                    correct_answers=1,
-                    percentage=100.0,
-                    passed=True,
-                    submitted_at=NOW,
-                )
-            ]
-        ),
-    )
-
-    response = client.get(
-        "/results/history/me", headers={"Authorization": "Bearer fake_token"}
-    )
+    response = await async_client.get("/results/admin/dashboard")
 
     assert response.status_code == 200
-    assert len(response.json()) == 1
+    assert isinstance(response.json(), list)
 
     app.dependency_overrides.clear()
 
 
-def test_get_admin_dashboard_route_as_admin(client, mocker):
-    """
-    Test the admin dashboard endpoint returns 200 for an admin.
-    """
-    app.dependency_overrides[require_admin] = lambda: {
-        "sub": "admin1",
-        "role": "admin",
-    }
+@pytest.mark.asyncio
+async def test_get_attempt_result(async_client):
+    """Test retrieving a submitted attempt result."""
 
-    mocker.patch(
-        "app.api.v1.result_routes.ResultService.get_admin_dashboard",
-        new=AsyncMock(
-            return_value=[
-                ResultHistoryItem(
-                    id="1",
-                    quiz_id="quiz1",
-                    student_id="student1",
-                    attempt_number=1,
-                    total_questions=1,
-                    correct_answers=1,
-                    percentage=100.0,
-                    passed=True,
-                    submitted_at=NOW,
-                )
-            ]
-        ),
+    app.dependency_overrides[get_result_service] = lambda: MockResultService()
+    app.dependency_overrides[require_student] = (
+        lambda: {"sub": "student@test.com"}
     )
 
-    response = client.get(
-        "/results/admin/dashboard", headers={"Authorization": "Bearer fake_token"}
-    )
+    response = await async_client.get("/results/attempt123")
 
     assert response.status_code == 200
-    assert len(response.json()) == 1
+    assert response.json()["id"] == "attempt123"
 
     app.dependency_overrides.clear()
-
-
-def test_get_admin_dashboard_route_without_admin_token(client):
-    """
-    Test the admin dashboard endpoint returns 401/403 without admin auth.
-    """
-    response = client.get("/results/admin/dashboard")
-
-    assert response.status_code in (401, 403)

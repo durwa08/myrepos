@@ -1,3 +1,6 @@
+import base64
+import binascii
+
 from app.constants import STUDENT_ROLE
 from app.repositories.user_repository import (
     get_user_by_email,
@@ -26,6 +29,29 @@ from app.exceptions.custom_exceptions import (
 )
 
 
+def _decode_password(encoded_password: str) -> str:
+    """
+    Decode a Base64-encoded password received from the frontend back
+    into its original plaintext form.
+
+    The frontend Base64-encodes the password before sending it (see
+    authService.js). This is encoding, not encryption or hashing - it
+    provides no security benefit on its own and is fully reversible.
+    Real protection against interception comes from HTTPS; this step
+    only undoes the frontend's encoding so hashing/verification below
+    operates on the real password, exactly as before this change.
+
+    Raises InvalidCredentialsException if the value isn't valid
+    Base64, so a malformed/tampered request fails the same way bad
+    credentials would rather than raising an unhandled error.
+    """
+    try:
+        decoded_bytes = base64.b64decode(encoded_password, validate=True)
+        return decoded_bytes.decode("utf-8")
+    except (binascii.Error, UnicodeDecodeError, ValueError) as exc:
+        raise InvalidCredentialsException() from exc
+
+
 class AuthService:
     """Service class for handling user authentication and authorization."""
 
@@ -38,7 +64,8 @@ class AuthService:
         if existing_user is not None:
             raise UserAlreadyExistsException()
 
-        hashed = hash_password(request.password)
+        plain_password = _decode_password(request.password)
+        hashed = hash_password(plain_password)
 
         new_user = UserModel(
             username=request.username,
@@ -72,7 +99,9 @@ class AuthService:
         if user is None:
             raise InvalidCredentialsException()
 
-        if not verify_password(request.password, user["hashed_password"]):
+        plain_password = _decode_password(request.password)
+
+        if not verify_password(plain_password, user["hashed_password"]):
             raise InvalidCredentialsException()
 
         token_data = {
