@@ -2,8 +2,8 @@
 Service layer for quiz attempt management.
 
 Contains the business logic for starting a quiz attempt, saving
-partial answers, resuming an in-progress attempt, submitting an
-attempt for scoring, and viewing results.
+partial answers, resuming an in-progress attempt, and submitting an
+attempt for scoring.
 """
 
 import logging
@@ -12,7 +12,6 @@ from datetime import datetime, timedelta, timezone
 from app.constants import (
     ATTEMPT_ACCESS_DENIED_MESSAGE,
     ATTEMPT_EXPIRED_MESSAGE,
-    ATTEMPT_NOT_SUBMITTED_MESSAGE,
     INVALID_ANSWER_INDEX_MESSAGE,
     INVALID_QUESTION_FOR_ATTEMPT_MESSAGE,
     MAX_ATTEMPTS_ALLOWED,
@@ -22,7 +21,6 @@ from app.exceptions.custom_exceptions import (
     AttemptAlreadySubmittedException,
     AttemptExpiredException,
     AttemptNotFoundException,
-    AttemptNotSubmittedException,
     InvalidAttemptAnswerException,
     MaxAttemptsReachedException,
     QuizNotFoundException,
@@ -33,22 +31,17 @@ from app.repositories.attempt_repository import (
     create_attempt,
     get_active_attempt,
     get_attempt_by_id,
-    list_all_submitted_attempts,
-    list_submitted_attempts_by_student,
     mark_attempt_expired,
     save_answer,
     serialize_attempt,
-    serialize_result_summary,
     submit_attempt,
 )
 from app.repositories.question_repository import list_questions_by_quiz
 from app.repositories.quiz_repository import get_quiz_by_id
 from app.schemas.attempt_schema import (
-    AnswerBreakdownItem,
     AnswerSaveRequest,
     AttemptResponse,
-    AttemptResultResponse,
-    ResultHistoryItem,
+    SubmitAttemptResponse,
 )
 
 logger = logging.getLogger(__name__)
@@ -202,14 +195,15 @@ class AttemptService:
         result = AttemptResponse(**serialize_attempt(updated))
         return result
 
-    async def submit_attempt(self, attempt_id: str, student_id: str) -> AttemptResultResponse:
+    async def submit_attempt(self, attempt_id: str, student_id: str) -> SubmitAttemptResponse:
         """
         Submit an attempt and compute its score.
 
         Ownership is verified, but unlike resume/save_answer, an
         expired attempt is still allowed to be submitted (finalizing
         it automatically) rather than being rejected. Already-submitted
-        attempts cannot be submitted again.
+        attempts cannot be submitted again. For the full per-question
+        breakdown, use the Result module after submission.
         """
         attempt = await get_attempt_by_id(attempt_id)
         if attempt is None:
@@ -224,27 +218,12 @@ class AttemptService:
         saved_answers = attempt.get("answers", {})
         questions_snapshot = attempt["questions_snapshot"]
 
-        breakdown = []
-        correct_count = 0
-
-        for question in questions_snapshot:
-            question_id = question["question_id"]
-            selected_index = saved_answers.get(question_id)
-            correct_index = question["correct_answer_index"]
-            is_correct = selected_index == correct_index
-
-            if is_correct:
-                correct_count += 1
-
-            breakdown.append(
-                {
-                    "question_id": question_id,
-                    "question_text": question["question_text"],
-                    "selected_answer_index": selected_index,
-                    "correct_answer_index": correct_index,
-                    "is_correct": is_correct,
-                }
-            )
+        correct_count = sum(
+            1
+            for question in questions_snapshot
+            if saved_answers.get(question["question_id"])
+            == question["correct_answer_index"]
+        )
 
         total_questions = len(questions_snapshot)
         percentage = (
@@ -272,87 +251,15 @@ class AttemptService:
             attempt_id, student_id, correct_count, total_questions, percentage, passed,
         )
 
-        result = AttemptResultResponse(
+        result = SubmitAttemptResponse(
             id=str(updated["_id"]),
             quiz_id=updated["quiz_id"],
             attempt_number=updated["attempt_number"],
             status=updated["status"],
-            started_at=updated["started_at"],
             submitted_at=updated["submitted_at"],
             total_questions=updated["total_questions"],
             correct_answers=updated["correct_answers"],
             percentage=updated["percentage"],
             passed=updated["passed"],
-            answer_breakdown=[AnswerBreakdownItem(**item) for item in breakdown],
         )
-        return result
-
-    async def get_result(self, attempt_id: str, student_id: str) -> AttemptResultResponse:
-        """
-        Retrieve the result of a submitted attempt.
-
-        Only the student who owns the attempt can view it. Raises if
-        the attempt doesn't exist, isn't submitted yet, or belongs to
-        a different student.
-        """
-        attempt = await get_attempt_by_id(attempt_id)
-        if attempt is None:
-            raise AttemptNotFoundException()
-
-        if attempt["student_id"] != student_id:
-            raise AttemptAccessDeniedException()
-
-        if attempt["status"] != "submitted":
-            raise AttemptNotSubmittedException()
-
-        breakdown = []
-        for question in attempt["questions_snapshot"]:
-            question_id = question["question_id"]
-            selected_index = attempt.get("answers", {}).get(question_id)
-            correct_index = question["correct_answer_index"]
-            breakdown.append(
-                AnswerBreakdownItem(
-                    question_id=question_id,
-                    question_text=question["question_text"],
-                    selected_answer_index=selected_index,
-                    correct_answer_index=correct_index,
-                    is_correct=selected_index == correct_index,
-                )
-            )
-
-        result = AttemptResultResponse(
-            id=str(attempt["_id"]),
-            quiz_id=attempt["quiz_id"],
-            attempt_number=attempt["attempt_number"],
-            status=attempt["status"],
-            started_at=attempt["started_at"],
-            submitted_at=attempt["submitted_at"],
-            total_questions=attempt["total_questions"],
-            correct_answers=attempt["correct_answers"],
-            percentage=attempt["percentage"],
-            passed=attempt["passed"],
-            answer_breakdown=breakdown,
-        )
-        return result
-
-    async def get_history(self, student_id: str) -> list[ResultHistoryItem]:
-        """
-        Retrieve a student's full history of submitted attempt results.
-        """
-        attempts = await list_submitted_attempts_by_student(student_id)
-        result = [
-            ResultHistoryItem(**serialize_result_summary(a)) for a in attempts
-        ]
-        return result
-
-    async def get_admin_dashboard(self) -> list[ResultHistoryItem]:
-        """
-        Retrieve every submitted attempt result across all students.
-
-        Used for the admin results dashboard.
-        """
-        attempts = await list_all_submitted_attempts()
-        result = [
-            ResultHistoryItem(**serialize_result_summary(a)) for a in attempts
-        ]
         return result

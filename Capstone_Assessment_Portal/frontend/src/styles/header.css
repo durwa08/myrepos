@@ -1,0 +1,49 @@
+.header {
+    height: 75px;
+    background: white;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 30px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+
+.header-left h2 {
+    margin: 0;
+    color: #1f2937;
+}
+
+.header-left p {
+    margin-top: 4px;
+    color: gray;
+    font-size: 14px;
+}
+
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 25px;
+}
+
+.date {
+    color: #555;
+    font-weight: 500;
+}
+
+.logout-btn {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 10px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    transition: 0.3s;
+}
+
+.logout-btn:hover {
+    background: #1d4ed8;
+}

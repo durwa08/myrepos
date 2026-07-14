@@ -1,0 +1,230 @@
+.category-page {
+  padding: 10px;
+}
+
+.category-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.add-category-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 8px;
+
+  padding: 12px 22px;
+  font-size: 15px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.add-category-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.category-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: white;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.category-table th {
+  background: #2563eb;
+  color: white;
+  padding: 16px;
+  text-align: left;
+  font-weight: 600;
+}
+
+.category-table td {
+  padding: 16px;
+  border-bottom: 1px solid #eee;
+}
+
+.category-table tbody tr:hover {
+  background: #f8fbff;
+}
+
+.empty-state {
+  background: white;
+  padding: 50px;
+  text-align: center;
+  border-radius: 15px;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+
+  z-index: 1000;
+}
+
+.category-modal {
+  width: 420px;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  animation: popup 0.25s ease;
+}
+
+.category-modal h2 {
+  margin-bottom: 20px;
+}
+
+.category-modal input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  outline: none;
+  font-size: 15px;
+}
+
+.category-modal input:focus {
+  border-color: #2563eb;
+}
+
+.error-message {
+  color: #dc2626;
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.save-btn,
+.cancel-btn {
+  border: none;
+  border-radius: 8px;
+
+  padding: 10px 20px;
+
+  color: white;
+  cursor: pointer;
+
+  transition: all 0.3s ease;
+}
+
+.save-btn {
+  background: #2563eb;
+}
+
+.save-btn:hover {
+  background: #1d4ed8;
+}
+
+.cancel-btn {
+  background: #ef4444;
+}
+
+.cancel-btn:hover {
+  background: #dc2626;
+}
+
+.action-buttons {
+  display: flex;
+  gap: 10px;
+}
+
+.edit-btn,
+.delete-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+
+  border: none;
+  border-radius: 6px;
+
+  padding: 8px 14px;
+
+  color: white;
+  font-size: 14px;
+  font-weight: 500;
+
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.edit-btn {
+  background: #2563eb;
+}
+
+.edit-btn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+}
+
+.delete-btn {
+  background: #dc2626;
+}
+
+.delete-btn:hover {
+  background: #b91c1c;
+  transform: translateY(-2px);
+}
+
+.edit-btn svg,
+.delete-btn svg {
+  font-size: 15px;
+}
+
+.delete-modal {
+  width: 420px;
+  background: white;
+  border-radius: 12px;
+  padding: 30px;
+  text-align: center;
+  animation: popup 0.25s ease;
+}
+
+.delete-modal h2 {
+  margin-bottom: 15px;
+}
+
+.delete-modal p {
+  color: #555;
+  margin-bottom: 25px;
+  font-size: 15px;
+}
+
+.delete-modal strong {
+  color: #dc2626;
+}
+
+@keyframes popup {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

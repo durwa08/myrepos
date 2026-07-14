@@ -8,12 +8,10 @@ import pytest
 from pydantic import ValidationError
 
 from app.schemas.attempt_schema import (
-    AnswerBreakdownItem,
     AnswerSaveRequest,
     AttemptResponse,
-    AttemptResultResponse,
     QuestionSnapshotResponse,
-    ResultHistoryItem,
+    SubmitAttemptResponse,
 )
 
 
@@ -82,67 +80,21 @@ def test_attempt_response_with_answers():
     assert response.answers == {"q1": 2}
 
 
-def test_answer_breakdown_item_allows_none_selected():
+def test_submit_attempt_response_valid():
     """
-    Test that AnswerBreakdownItem allows a None selected_answer_index
-    for unanswered questions.
-    """
-    item = AnswerBreakdownItem(
-        question_id="q1",
-        question_text="What is 2+2?",
-        selected_answer_index=None,
-        correct_answer_index=1,
-        is_correct=False,
-    )
-    assert item.selected_answer_index is None
-    assert item.is_correct is False
-
-
-def test_attempt_result_response_valid():
-    """
-    Test a valid attempt result response.
+    Test a valid submit attempt response.
     """
     now = datetime.now(timezone.utc)
-    result = AttemptResultResponse(
+    response = SubmitAttemptResponse(
         id="1",
         quiz_id="q1",
         attempt_number=1,
         status="submitted",
-        started_at=now,
         submitted_at=now,
         total_questions=2,
         correct_answers=1,
         percentage=50.0,
         passed=True,
-        answer_breakdown=[
-            AnswerBreakdownItem(
-                question_id="q1",
-                question_text="Q1",
-                selected_answer_index=0,
-                correct_answer_index=0,
-                is_correct=True,
-            )
-        ],
     )
-    assert result.percentage == 50.0
-    assert result.passed is True
-    assert len(result.answer_breakdown) == 1
-
-
-def test_result_history_item_valid():
-    """
-    Test a valid result history item.
-    """
-    item = ResultHistoryItem(
-        id="1",
-        quiz_id="q1",
-        student_id="s1",
-        attempt_number=1,
-        total_questions=5,
-        correct_answers=3,
-        percentage=60.0,
-        passed=True,
-        submitted_at=datetime.now(timezone.utc),
-    )
-    assert item.percentage == 60.0
-    assert item.student_id == "s1"
+    assert response.percentage == 50.0
+    assert response.passed is True

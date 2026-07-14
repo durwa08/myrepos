@@ -25,6 +25,7 @@ from app.repositories.question_repository import (
     delete_question,
     get_question_by_id,
     get_question_by_text_and_quiz,
+    list_all_questions,
     list_questions_by_quiz,
     serialize_question,
     update_question,
@@ -36,9 +37,7 @@ from app.schemas.question_schema import (
     QuestionPublicResponse,
     QuestionResponse,
     QuestionUpdateRequest,
-    
 )
-
 
 logger = logging.getLogger(__name__)
 
@@ -75,16 +74,34 @@ class QuestionService:
             tags=request.tags,
             created_by=admin_id,
         )
+
         created = await create_question(new_question)
+
         logger.info(
             "Question created with id=%s for quiz=%s by admin=%s",
-            created["_id"], request.quiz_id, admin_id,
+            created["_id"],
+            request.quiz_id,
+            admin_id,
         )
 
-        result = QuestionResponse(**serialize_question(created))
-        return result
+        return QuestionResponse(**serialize_question(created))
 
-    async def get_questions_by_quiz(self, quiz_id: str) -> list[QuestionPublicResponse]:
+    async def get_all_questions(self) -> list[QuestionPublicResponse]:
+        """
+        Retrieve all questions.
+
+        Returns the student-safe view, excluding correct_answer_index.
+        """
+        questions = await list_all_questions()
+
+        return [
+            QuestionPublicResponse(**serialize_question(question))
+            for question in questions
+        ]
+
+    async def get_questions_by_quiz(
+        self, quiz_id: str
+    ) -> list[QuestionPublicResponse]:
         """
         Retrieve all questions belonging to a quiz.
 
@@ -97,10 +114,11 @@ class QuestionService:
             raise QuizNotFoundException()
 
         questions = await list_questions_by_quiz(quiz_id)
-        result = [
-            QuestionPublicResponse(**serialize_question(q)) for q in questions
+
+        return [
+            QuestionPublicResponse(**serialize_question(question))
+            for question in questions
         ]
-        return result
 
     async def get_question(self, question_id: str) -> QuestionPublicResponse:
         """
@@ -110,11 +128,11 @@ class QuestionService:
         since this is accessible to any authenticated user.
         """
         question = await get_question_by_id(question_id)
+
         if question is None:
             raise QuestionNotFoundException()
 
-        result = QuestionPublicResponse(**serialize_question(question))
-        return result
+        return QuestionPublicResponse(**serialize_question(question))
 
     async def update_question(
         self,
@@ -129,6 +147,7 @@ class QuestionService:
         may only touch one of these interdependent fields.
         """
         existing = await get_question_by_id(question_id)
+
         if existing is None:
             raise QuestionNotFoundException()
 
@@ -137,42 +156,48 @@ class QuestionService:
         merged_type = update_data.get("question_type", existing["question_type"])
         merged_options = update_data.get("options", existing["options"])
         merged_index = update_data.get(
-            "correct_answer_index", existing["correct_answer_index"]
+            "correct_answer_index",
+            existing["correct_answer_index"],
         )
 
         if merged_type == "mcq":
             if merged_options is None or len(merged_options) != MCQ_OPTIONS_COUNT:
                 raise ValueError(INVALID_OPTIONS_COUNT_MESSAGE)
+
             if not 0 <= merged_index < MCQ_OPTIONS_COUNT:
                 raise ValueError(INVALID_CORRECT_ANSWER_INDEX_MESSAGE)
 
         if merged_type == "true_false":
             merged_options = TRUE_FALSE_OPTIONS
             update_data["options"] = TRUE_FALSE_OPTIONS
+
             if not 0 <= merged_index < len(TRUE_FALSE_OPTIONS):
                 raise ValueError(INVALID_CORRECT_ANSWER_INDEX_MESSAGE)
 
         if "question_text" in update_data:
             duplicate = await get_question_by_text_and_quiz(
-                update_data["question_text"], existing["quiz_id"]
+                update_data["question_text"],
+                existing["quiz_id"],
             )
+
             if duplicate is not None and str(duplicate["_id"]) != question_id:
                 raise QuestionAlreadyExistsException()
 
         updated = await update_question(question_id, update_data)
+
         logger.info("Question updated with id=%s", question_id)
 
-        result = QuestionResponse(**serialize_question(updated))
-        return result
+        return QuestionResponse(**serialize_question(updated))
 
     async def delete_question(self, question_id: str) -> MessageResponse:
         """
         Delete an existing question.
         """
         deleted = await delete_question(question_id)
+
         if not deleted:
             raise QuestionNotFoundException()
 
         logger.info("Question deleted with id=%s", question_id)
-        result = MessageResponse(message=QUESTION_DELETED_MESSAGE)
-        return result
+
+        return MessageResponse(message=QUESTION_DELETED_MESSAGE)
